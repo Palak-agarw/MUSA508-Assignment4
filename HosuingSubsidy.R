@@ -17,6 +17,43 @@ palette2 <- c("#981FAC","#FF006A")
 
 house_subsidy <- read.csv("DATA/housingSubsidy.csv")
 
+## Data wrangling
+### Employment 
+house_subsidy <-
+  house_subsidy %>%
+  mutate(Employment = ifelse(house_subsidy$job == "blue-collar"|house_subsidy$job == "services"|house_subsidy$job =="admin."|house_subsidy$job =="entrepreneur"|
+                               house_subsidy$job =="self-employed"|house_subsidy$job =="technician"|house_subsidy$job =="management"|
+                               house_subsidy$job =="housemaid",1,0))
+
+### Age
+house_subsidy <-
+  house_subsidy %>%
+  mutate(Age_group = case_when(
+    age < 18 ~ "Less than 18",
+    age >= 18 & age < 25  ~ "18-25",
+    age >= 25 & age < 35  ~ "25-35",
+    age >= 35 & age <= 50  ~ "35-50",
+    age >= 50 & age < 65   ~ "50-65",
+    age >= 65   ~ "Above 65"))
+
+### Education
+house_subsidy <-
+  house_subsidy %>%
+  mutate(Education_group = case_when(
+    education == "basic.9y" |education == "basic.6y" | education == "basic.4y" ~ "Basics",
+    education == "high.school"  ~ "High School",
+    education == "university.degree" |education == "professional.course"  ~ "College",
+    education == "unknown" |education == "illiterate"  ~ "Illiterate"))
+
+### Seasons
+house_subsidy <-
+  house_subsidy %>%
+  mutate(Season = case_when(
+    month == "dec" |month == "jan" | month == "feb" ~ "Winter",
+    month == "mar" |month == "apr" | month == "may" ~ "Spring",
+    month == "jun" |month == "jul" | month == "aug" ~ "Summer",
+    month == "sep" |month == "oct" | month == "nov" ~ "Fall"))
+
 ##continuous variables
 ### Leah - added campaign,pdays, previous, cons.price.idx, cons.conf.idx
 ### Leah - unemployment rate plot is weird
@@ -156,17 +193,19 @@ house_subsidy %>%
 
 ##
 set.seed(3456)
-trainIndex <- createDataPartition(house_subsidy$y, p = .50, y = paste(house_subsidy$education),
+trainIndex <- createDataPartition(house_subsidy$y, p = .65, 
+                                  y = paste(house_subsidy$Education_group, house_subsidy$Age_group, house_subsidy$Season, house_subsidy$Employment),
                                   list = FALSE,
                                   times = 1)
 housingTrain <- house_subsidy[ trainIndex,]
 housingTest  <- house_subsidy[-trainIndex,]
 
 ## Regression
+
 housingModel <- glm(y_numeric ~ .,
-                        data=housingTrain %>% 
-                          dplyr::select(-contact, -month, -y, -day_of_week,-campaign,-pdays,-previous,-poutcome),
-                        family="binomial" (link="logit"))
+                    data=housingTrain %>% 
+                      dplyr::select(-contact, -month, -y, -day_of_week,-campaign,-pdays,-previous,-poutcome, -age, -job, -education),
+                    family="binomial" (link="logit"))
 
 summary(housingModel)
 
