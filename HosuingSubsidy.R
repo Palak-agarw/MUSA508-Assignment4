@@ -194,7 +194,7 @@ house_subsidy %>%
 ##
 set.seed(3456)
 trainIndex <- createDataPartition(house_subsidy$y, p = .65, 
-                                  y = paste(house_subsidy$Education_group, house_subsidy$Age_group, house_subsidy$Season, house_subsidy$Employment),
+                                  y = paste(house_subsidy$Education_group,house_subsidy$Age_group,house_subsidy$Season,house_subsidy$Employment,house_subsidy$taxLien),
                                   list = FALSE,
                                   times = 1)
 housingTrain <- house_subsidy[ trainIndex,]
@@ -281,7 +281,7 @@ cost_benefit_table <-
   gather(Variable, Count) %>%
   mutate(Revenue =
            case_when(Variable == "True_Negative" ~ Count*0,
-                Variable == "True_Positive" ~ ((Count*.25*10000)-(Count*2850)-(Count*.25*5000)),
+                Variable == "True_Positive" ~ ((Count*.25*10000) + (Count*.25*56000)-(Count*2850)-(Count*.25*5000)),
                 Variable == "False_Negative" ~ Count*0,
                 Variable == "False_Positive" ~ -(Count*2850))) %>%
   mutate(Households_Helped=
