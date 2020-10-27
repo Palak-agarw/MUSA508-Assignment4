@@ -8,40 +8,150 @@ library(pscl)
 library(plotROC)
 library(pROC)
 library(lubridate)
+# Leah - added this library
+library(gridExtra)
 
 palette5 <- c("#981FAC","#CB0F8B","#FF006A","#FE4C35","#FE9900")
 palette4 <- c("#981FAC","#FF006A","#FE4C35","#FE9900")
-palette2 <- c("#981 FAC","#FF006A")
-
+palette2 <- c("#981FAC","#FF006A")
 
 house_subsidy <- read.csv("DATA/housingSubsidy.csv")
 
 ##continuous variables
+### Leah - added campaign,pdays, previous, cons.price.idx, cons.conf.idx
+### Leah - unemployment rate plot is weird
+### Leah - Changed fun.y to fun
 house_subsidy %>%
-  dplyr::select(y,unemploy_rate, spent_on_repairs, age) %>%
+  dplyr::select(y,unemploy_rate, spent_on_repairs, age, campaign, pdays, 
+                previous,cons.price.idx,cons.conf.idx) %>%
   gather(Variable, value, -y) %>%
   ggplot(aes(y, value, fill=y)) + 
-  geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + 
+  geom_bar(position = "dodge", stat = "summary", fun = "mean") + 
   facet_wrap(~Variable, scales = "free") +
   scale_fill_manual(values = palette2) +
   labs(x="y", y="Value", 
-       title = "Feature associations with the likelihood of click",
+       title = "Feature associations with the likelihood of taking credit",
        subtitle = "(continous outcomes)") +
   theme(legend.position = "none")
 
 ## categorical variables
+#grid.arrange(ncol=5,
 house_subsidy %>%
-  dplyr::select(y,job, marital, education, mortgage, taxbill_in_phl ) %>%
+  dplyr::select(y, education) %>%
   gather(Variable, value, -y) %>%
   count(Variable, value, y) %>%
-  ggplot(aes(y, n, fill = y)) +   
+  ggplot(aes(value, n, fill = y)) +   
   geom_bar(position = "dodge", stat="identity") +
-  facet_wrap(~Variable, scales = "free", ncol=5) +
+  facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="y", y="Count",
-       title = "Feature associations with the likelihood of churn",
-       subtitle = "Two category features (Yes and No)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(x="Take Credit", y="Count",
+       title = "Education association with likelihood of taking credit")
+     
+
+## Jobs
+house_subsidy %>%
+  dplyr::select(y, job) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Job type association with the likelihood of taking credit")
+
+## Marital
+house_subsidy %>%
+  dplyr::select(y, marital) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Marital status association with the likelihood of taking credit")
+
+## taxLien
+house_subsidy %>%
+  dplyr::select(y, taxLien) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Tax Lien association with the likelihood of taking credit")
+
+house_subsidy %>%
+  dplyr::select(y, mortgage) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Mortgag association with the likelihood of taking credit")
+
+house_subsidy %>%
+  dplyr::select(y, taxbill_in_phl) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Full-time residence in Philadelphia association with the likelihood of taking credit")
+
+house_subsidy %>%
+  dplyr::select(y, contact) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Previous contact association with the likelihood of taking credit")
+
+# Change order of months
+house_subsidy %>%
+  dplyr::select(y, month) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Month contacted association with the likelihood of taking credit")
+
+# Change order of days
+house_subsidy %>%
+  dplyr::select(y, day_of_week) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Day contacted association with the likelihood of taking credit")
+
+house_subsidy %>%
+  dplyr::select(y, poutcome) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Outcome of previous campaign association with the likelihood of taking credit")
+#)
 
 
 ##
@@ -53,7 +163,6 @@ housingTrain <- house_subsidy[ trainIndex,]
 housingTest  <- house_subsidy[-trainIndex,]
 
 ## Regression
-
 housingModel <- glm(y_numeric ~ .,
                         data=housingTrain %>% 
                           dplyr::select(-contact, -month, -y, -day_of_week,-campaign,-pdays,-previous,-poutcome),
@@ -61,12 +170,15 @@ housingModel <- glm(y_numeric ~ .,
 
 summary(housingModel)
 
-## Fit metrics
+## Adding Coefficients
+x <- housingModel$coefficients
+exp(x)
 
+
+## Fit metrics
 pR2(housingModel)
 
 ## Prediction
-
 testProbs <- data.frame(Outcome = as.factor(housingTest$y_numeric),
                         Probs = predict(housingModel, housingTest, type= "response"))
 
@@ -97,7 +209,6 @@ ggplot(testProbs, aes(d = as.numeric(testProbs$Outcome), m = Probs)) +
   labs(title = "ROC Curve - clickModel")
 
 ## Cross validation
-
 ctrl <- trainControl(method = "cv", number = 100, classProbs=TRUE, summaryFunction=twoClassSummary)
 
 cvFit <- train(y ~ .,
@@ -130,15 +241,20 @@ cost_benefit_table <-
             False_Positive = sum(n[predOutcome==1 & Outcome==0])) %>%
   gather(Variable, Count) %>%
   mutate(Revenue =
-           ifelse(Variable == "True_Negative", Count * 0,
-                  ifelse(Variable == "True_Positive",((.35 - .1) * Count),
-                         ifelse(Variable == "False_Negative", (-0.35) * Count,
-                                ifelse(Variable == "False_Positive", (-0.1) * Count, 0))))) %>%
+           case_when(Variable == "True_Negative" ~ Count*0,
+                Variable == "True_Positive" ~ ((Count*.25*10000)-(Count*2850)-(Count*.25*5000)),
+                Variable == "False_Negative" ~ Count*0,
+                Variable == "False_Positive" ~ -(Count*2850))) %>%
+  mutate(Households_Helped=
+           case_when(Variable == "True_Negative" ~ Count*0,
+                     Variable == "True_Positive" ~ Count*.25,
+                     Variable == "False_Negative" ~ Count*0,
+                     Variable == "False_Positive" ~ Count*0)) %>%
   bind_cols(data.frame(Description = c(
-    "We correctly predicted no click",
-    "We correctly predicted a click",
-    "We predicted no click and customer clicked",
-    "We predicted a click and customer did not click")))
+    "We correctly predicted not taking credit",
+    "We correctly predicted taking credit",
+    "We predicted would not take credit and customer took credit",
+    "We predicted customer would take credit and customer did not take credit")))
 
 kable(cost_benefit_table,
       caption = "Cost/Benefit Table") %>% kable_styling()
