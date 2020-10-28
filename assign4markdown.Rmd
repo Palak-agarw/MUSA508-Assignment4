@@ -238,7 +238,6 @@ house_subsidy <-
     day_of_week == "tue" |day_of_week == "wed" | day_of_week == "thu" ~ "Non-busy"))
 
 ```
-
 ## Correlation
 ```{r correlation, message=FALSE, warning=FALSE}
 
