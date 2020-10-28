@@ -402,7 +402,7 @@ cvFit9 ##.227
 cvFit10 <- train(y ~ .,
                 data=house_subsidy %>% 
                   dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-poutcome,-age, 
-                                -education, -job,-taxLien, -mortgage, -Employment, -Day) %>%
+                                -education, -job,-taxLien, -mortgage, -Employment, -Day, -y_numeric) %>%
                   dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
                 method="glm", family="binomial",
                 metric="ROC", trControl = ctrl)
@@ -410,6 +410,16 @@ cvFit10 <- train(y ~ .,
 
 cvFit10 ##.2205
 
+cvFit11 <- train(y ~ .,
+                 data=house_subsidy %>% 
+                   dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-poutcome,-Age_group, 
+                                 -education, -job,-taxLien, -Employment, -Day, -y_numeric) %>%
+                   dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                 method="glm", family="binomial",
+                 metric="ROC", trControl = ctrl)
+
+
+cvFit11 ##.2225
 
 ## Goodness metrics
 dplyr::select(cvFit$resample, -Resample) %>%
