@@ -57,9 +57,6 @@ Not  sure how to interpret the plots that aren't means (categorical variables)
 
 ```{r data_vis, warning=FALSE, message=FALSE}
 ##continuous variables
-### Leah - added campaign,pdays, previous, cons.price.idx, cons.conf.idx
-### Leah - unemployment rate plot is weird
-### Leah - Changed fun.y to fun
 house_subsidy %>%
   dplyr::select(y,unemploy_rate, spent_on_repairs, age, campaign, pdays, 
                 previous,cons.price.idx,cons.conf.idx) %>%
