@@ -221,6 +221,7 @@ pR2(housingModel)
 testProbs <- data.frame(Outcome = as.factor(housingTest$y_numeric),
                         Probs = predict(housingModel, housingTest, type= "response"))
 
+# Here we want more of a hump in the bottom plot around 1 to indicate that the reg is predictive
 ggplot(testProbs, aes(x = Probs, fill = as.factor(Outcome))) + 
   geom_density() +
   facet_grid(Outcome ~ .) +
@@ -231,6 +232,7 @@ ggplot(testProbs, aes(x = Probs, fill = as.factor(Outcome))) +
         legend.position = "none")
 
 ## Confusion matrix
+### Might want to change this threshold, here a probability >50% if being predicted as takes credit
 testProbs <- 
   testProbs %>%
   mutate(predOutcome  = as.factor(ifelse(testProbs$Probs > 0.5 , 1, 0)))
@@ -239,6 +241,7 @@ caret::confusionMatrix(testProbs$predOutcome, testProbs$Outcome,
                        positive = "1")
 
 ## ROC curve
+# This us a goodness of fit measure, 1 would be a perfect fit, .5 is a coin toss
 auc(testProbs$Outcome, testProbs$Probs)
 
 ggplot(testProbs, aes(d = as.numeric(testProbs$Outcome), m = Probs)) +
