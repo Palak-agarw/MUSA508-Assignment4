@@ -8,7 +8,7 @@ library(pscl)
 library(plotROC)
 library(pROC)
 library(lubridate)
-# Leah - added this library
+library(ggcorrplot)
 library(gridExtra)
 
 palette5 <- c("#981FAC","#CB0F8B","#FF006A","#FE4C35","#FE9900")
@@ -53,6 +53,13 @@ house_subsidy <-
     month == "mar" |month == "apr" | month == "may" ~ "Spring",
     month == "jun" |month == "jul" | month == "aug" ~ "Summer",
     month == "sep" |month == "oct" | month == "nov" ~ "Fall"))
+
+## Day
+house_subsidy <-
+  house_subsidy %>%
+  mutate(Day = case_when(
+    day_of_week == "mon" |day_of_week == "fri" ~ "Busy",
+    day_of_week == "tue" |day_of_week == "wed" | day_of_week == "thu" ~ "Non-busy"))
 
 ##continuous variables
 ### Leah - added campaign,pdays, previous, cons.price.idx, cons.conf.idx
@@ -219,7 +226,8 @@ ggcorrplot(
 ##
 set.seed(3456)
 trainIndex <- createDataPartition(house_subsidy$y, p = .65, 
-                                  y = paste(house_subsidy$Education_group,house_subsidy$Age_group,house_subsidy$Season,house_subsidy$Employment,house_subsidy$taxLien),
+                                  y = paste(house_subsidy$Education_group,house_subsidy$Age_group,house_subsidy$Season,
+                                            house_subsidy$Employment,house_subsidy$taxLien, house_subsidy$Day),
                                   list = FALSE,
                                   times = 1)
 housingTrain <- house_subsidy[ trainIndex,]
@@ -232,8 +240,24 @@ housingModel1 <- glm(y_numeric ~ .,
                        dplyr::select(-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-y,-Age_group, 
                                      -Education_group, -inflation_rate),
                      family="binomial" (link="logit"))
-
 summary(housingModel1)
+
+housingModel2 <- glm(y_numeric ~ .,
+                     data=housingTrain %>% 
+                       dplyr::select(-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-y,-age, 
+                                     -education),
+                     family="binomial" (link="logit"))
+
+summary(housingModel2)
+
+housingModel3 <- glm(y_numeric ~ .,
+                     data=housingTrain %>% 
+                       dplyr::select(-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-y,-age, 
+                                     -education, -job, marital),
+                     family="binomial" (link="logit"))
+
+summary(housingModel3)
+
 
 ## Adding Coefficients
 x <- housingModel$coefficients
@@ -285,7 +309,107 @@ cvFit1 <- train(y ~ .,
                 metric="ROC", trControl = ctrl)
 
 
-cvFit1
+cvFit1  ## .115
+
+cvFit2 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-age, 
+                                -education) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
+
+
+cvFit2  ##.122
+
+cvFit3 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-age, 
+                                -education, -job, marital) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
+
+
+cvFit3  ##.138
+
+cvFit4 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-age, 
+                                -education, -job, marital,-taxLien, -mortgage, -Employment) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
+
+
+cvFit4 ##.129
+
+cvFit5 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-age, 
+                                -education, -job,-taxLien, -mortgage, -Employment) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
+
+
+cvFit5 ##.127
+
+cvFit6 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-age, 
+                                -education, -job,-taxLien, -mortgage, -Employment, -Day) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
+
+
+cvFit6 ##.1325
+
+cvFit7 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-age, 
+                                -education, -job,-taxLien, -mortgage, -Employment, -Day, -Education_group) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
+
+
+cvFit7 ##.1365
+
+cvFit8 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-previous,-poutcome,-age, 
+                                -education, -job,-taxLien, -mortgage, -Employment, -Day, -Education_group) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
+
+
+cvFit8 ##.2175
+
+cvFit9 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-poutcome,-age, 
+                                -education, -job,-taxLien, -mortgage, -Employment, -Day, -Education_group) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
+
+
+cvFit9 ##.227
+
+cvFit10 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-poutcome,-age, 
+                                -education, -job,-taxLien, -mortgage, -Employment, -Day) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
+
+
+cvFit10 ##.2205
+
 
 ## Goodness metrics
 dplyr::select(cvFit$resample, -Resample) %>%
