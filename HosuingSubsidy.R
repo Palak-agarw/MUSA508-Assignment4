@@ -190,6 +190,31 @@ house_subsidy %>%
        title = "Outcome of previous campaign association with the likelihood of taking credit")
 #)
 
+### Correlations
+
+numericVars1 <- 
+  select_if(house_subsidy, is.numeric) %>% na.omit() %>%
+  dplyr::select(age, unemploy_rate, cons.price.idx, cons.conf.idx, inflation_rate, spent_on_repairs,y_numeric)
+
+ggcorrplot(
+  round(cor(numericVars1), 1), 
+  p.mat = cor_pmat(numericVars1),
+  colors = c("#25CB10", "white", "#FA7800"),
+  type="lower",
+  insig = "blank") +  
+  labs(title = "Correlation across Internal Characteristics", caption="Figure 1.1") 
+
+Vars2 <- 
+  house_subsidy %>% na.omit() %>%
+  dplyr::select(job,marital,education,y_numeric)
+
+ggcorrplot(
+  round(cor(Vars2), 1), 
+  p.mat = cor_pmat(Vars2),
+  colors = c("#25CB10", "white", "#FA7800"),
+  type="lower",
+  insig = "blank") +  
+  labs(title = "Correlation across Internal Characteristics", caption="Figure 1.1") 
 
 ##
 set.seed(3456)
@@ -202,12 +227,13 @@ housingTest  <- house_subsidy[-trainIndex,]
 
 ## Regression
 
-housingModel <- glm(y_numeric ~ .,
-                    data=housingTrain %>% 
-                      dplyr::select(-contact, -month, -y, -day_of_week,-campaign,-pdays,-previous,-poutcome, -age, -job, -education),
-                    family="binomial" (link="logit"))
+housingModel1 <- glm(y_numeric ~ .,
+                     data=housingTrain %>% 
+                       dplyr::select(-X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-y,-Age_group, 
+                                     -Education_group, -inflation_rate),
+                     family="binomial" (link="logit"))
 
-summary(housingModel)
+summary(housingModel1)
 
 ## Adding Coefficients
 x <- housingModel$coefficients
@@ -221,7 +247,6 @@ pR2(housingModel)
 testProbs <- data.frame(Outcome = as.factor(housingTest$y_numeric),
                         Probs = predict(housingModel, housingTest, type= "response"))
 
-# Here we want more of a hump in the bottom plot around 1 to indicate that the reg is predictive
 ggplot(testProbs, aes(x = Probs, fill = as.factor(Outcome))) + 
   geom_density() +
   facet_grid(Outcome ~ .) +
@@ -232,7 +257,6 @@ ggplot(testProbs, aes(x = Probs, fill = as.factor(Outcome))) +
         legend.position = "none")
 
 ## Confusion matrix
-### Might want to change this threshold, here a probability >50% if being predicted as takes credit
 testProbs <- 
   testProbs %>%
   mutate(predOutcome  = as.factor(ifelse(testProbs$Probs > 0.5 , 1, 0)))
@@ -241,7 +265,6 @@ caret::confusionMatrix(testProbs$predOutcome, testProbs$Outcome,
                        positive = "1")
 
 ## ROC curve
-# This us a goodness of fit measure, 1 would be a perfect fit, .5 is a coin toss
 auc(testProbs$Outcome, testProbs$Probs)
 
 ggplot(testProbs, aes(d = as.numeric(testProbs$Outcome), m = Probs)) +
@@ -253,13 +276,16 @@ ggplot(testProbs, aes(d = as.numeric(testProbs$Outcome), m = Probs)) +
 ## Cross validation
 ctrl <- trainControl(method = "cv", number = 100, classProbs=TRUE, summaryFunction=twoClassSummary)
 
-cvFit <- train(y ~ .,
-               data=house_subsidy %>% 
-                 dplyr::select(-contact, -month, -y_numeric, -day_of_week,-campaign,-pdays,-previous,-poutcome), 
-               method="glm", family="binomial",
-               metric="ROC", trControl = ctrl)
+cvFit1 <- train(y ~ .,
+                data=house_subsidy %>% 
+                  dplyr::select(-y_numeric, -X, -contact,-month,-day_of_week,-pdays,-previous,-poutcome,-Age_group, 
+                                -Education_group, -inflation_rate) %>%
+                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+                method="glm", family="binomial",
+                metric="ROC", trControl = ctrl)
 
-cvFit
+
+cvFit1
 
 ## Goodness metrics
 dplyr::select(cvFit$resample, -Resample) %>%
