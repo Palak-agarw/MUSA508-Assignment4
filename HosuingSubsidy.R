@@ -501,3 +501,23 @@ ggplot(whichThreshold_revenue)+
   geom_vline(xintercept =  pull(arrange(whichThreshold_revenue, -Revenue)[1,1]))+
   labs(title = "Model Revenues By Threshold For Test Sample",
        subtitle = "Vertical Line Denotes Optimal Threshold")
+
+
+## Optimum threshold
+
+optimum_threshold <- pull(arrange(whichThreshold_revenue, -Revenue)[1,1])
+
+opt <- 
+  whichThreshold %>% 
+  group_by(Threshold) %>% 
+  summarize(Revenue = sum(Revenue),
+            Number_Credits= sum(Number_Credits)) %>%
+  filter(Threshold == optimum_threshold)
+
+## empty
+fifty_thresh <-
+  whichThreshold %>% 
+  group_by(Threshold) %>% 
+  summarize(Revenue = sum(Revenue),
+            Number_Credits= sum(Number_Credits)) %>%
+  filter(Threshold == .5)
