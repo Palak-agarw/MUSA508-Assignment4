@@ -604,7 +604,6 @@ opt <-
             Number_Credits= sum(Number_Credits)) %>%
   filter(Threshold == optimum_threshold)
 
-## empty
 fifty_thresh <-
   whichThreshold %>% 
   group_by(Threshold) %>% 
@@ -612,7 +611,10 @@ fifty_thresh <-
             Number_Credits= sum(Number_Credits)) %>%
   filter(Threshold > .499 & Threshold < .51)
 
-final <- rbind(opt, fifty_thresh) 
+final <- data.frame(rbind(opt, fifty_thresh))
+
+kable(final,
+      caption = "Optimum Threshold and 50% Threshold") %>% kable_styling()
 
 ```
 
