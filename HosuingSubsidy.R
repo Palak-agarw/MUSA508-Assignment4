@@ -61,6 +61,17 @@ house_subsidy <-
     day_of_week == "mon" |day_of_week == "fri" ~ "Busy",
     day_of_week == "tue" |day_of_week == "wed" | day_of_week == "thu" ~ "Non-busy"))
 
+### Pdays 
+house_subsidy <-
+  house_subsidy %>%
+  mutate(Pdays_group = case_when(
+    pdays >= 1 & pdays <= 7 ~ "In a week",
+    pdays >= 8 & pdays <= 14  ~ "Second week",
+    pdays >= 15 & pdays <= 21  ~ "Third week",
+    pdays >= 22 & age < 999  ~ "After a month",
+    pdays >= 999   ~ "Never contacted"))
+
+
 ##continuous variables
 ### Leah - added campaign,pdays, previous, cons.price.idx, cons.conf.idx
 ### Leah - unemployment rate plot is weird
@@ -269,7 +280,7 @@ pR2(housingModel)
 
 ## Prediction
 testProbs <- data.frame(Outcome = as.factor(housingTest$y_numeric),
-                        Probs = predict(housingModel, housingTest, type= "response"))
+                        Probs = predict(housingModel1, housingTest, type= "response"))
 
 ggplot(testProbs, aes(x = Probs, fill = as.factor(Outcome))) + 
   geom_density() +
@@ -476,12 +487,22 @@ iterateThresholds <- function(data) {
                 False_Negative = sum(n[predOutcome==0 & Outcome==1]),
                 False_Positive = sum(n[predOutcome==1 & Outcome==0])) %>%
       gather(Variable, Count) %>%
-      mutate(Revenue =
-               ifelse(Variable == "True_Negative", Count * 0,
-                      ifelse(Variable == "True_Positive",((.35 - .1) * Count),
-                             ifelse(Variable == "False_Negative", (-0.35) * Count,
-                                    ifelse(Variable == "False_Positive", (-0.1) * Count, 0)))),
-             Threshold = x)
+      mutate(HCD_Expenditure =
+               if_else(Variable == "True_Negative" ~ Count*0,
+               if_else(Variable == "True_Positive", ~ (Count*2850)+(Count*5000),
+               if_else(Variable ==  "False_Negative" ~ Count*0,
+               if_else(Variable == "False_Positive" ~ (Count*2850)))),
+             Home_Value_Added =
+               if_else(Variable == "True_Negative" ~ Count*0,
+               if_else(Variable == "True_Positive" ~ (Count*10000)+(Count*56000),
+               if_else(Variable == "False_Negative" ~ Count*0,
+               if_else(Variable == "False_Positive" ~ -(Count*0))))),
+             Threshold = x) %>%
+      mutate(Number_Credits=
+               case_when(Variable == "True_Negative" ~ Count*0,
+                         Variable == "True_Positive" ~ Count*.25,
+                         Variable == "False_Negative" ~ Count*0,
+                         Variable == "False_Positive" ~ Count*0)))
     
     all_prediction <- rbind(all_prediction, this_prediction)
     x <- x + .01
@@ -489,38 +510,124 @@ iterateThresholds <- function(data) {
   return(all_prediction)
 }
 
-whichThreshold <- iterateThresholds(testProbs2)
+whichThreshold <- iterateThresholds(testProbs)
 
-whichThreshold_revenue <- 
+whichThreshold_revenueHCD <- 
   whichThreshold %>% 
-  group_by(Threshold) %>% 
-  summarize(Revenue = sum(Revenue))
+  group_by(Threshold) %>% na.omit() %>%
+  summarize(HCD_Expenditure = sum(HCD_Expenditure))
 
-ggplot(whichThreshold_revenue)+
-  geom_line(aes(x = Threshold, y = Revenue))+
-  geom_vline(xintercept =  pull(arrange(whichThreshold_revenue, -Revenue)[1,1]))+
-  labs(title = "Model Revenues By Threshold For Test Sample",
+ggplot(whichThreshold_revenueHCD)+
+  geom_line(aes(x = Threshold, y = HCD_Expenditure))+
+  geom_vline(xintercept =  pull(arrange(whichThreshold_revenueHCD, -HCD_Expenditure)[1,1]))+
+  labs(title = "Model HCD Expenditure By Threshold For Test Sample",
        subtitle = "Vertical Line Denotes Optimal Threshold")
 
+whichThreshold_revenueHome <- 
+  whichThreshold %>% 
+  group_by(Threshold) %>% na.omit() %>%
+  summarize(Home_Value_Added = sum(Home_Value_Added))
 
-## Optimum threshold
+ggplot(whichThreshold_revenueHome)+
+  geom_line(aes(x = Threshold, y = Home_Value_Added))+
+  geom_vline(xintercept =  pull(arrange(whichThreshold_revenueHome, -Home_Value_Added)[1,1]))+
+  labs(title = "Model Home Value Addition By Threshold For Test Sample",
+       subtitle = "Vertical Line Denotes Optimal Threshold")
+whichThreshold_credits <- 
+  whichThreshold %>% 
+  group_by(Threshold) %>% 
+  summarize(Number_Credits= sum(Number_Credits))
 
-optimum_threshold <- pull(arrange(whichThreshold_revenue, -Revenue)[1,1])
+ggplot(whichThreshold_credits)+
+  geom_line(aes(x = Threshold, y = Number_Credits))+
+  geom_vline(xintercept =  pull(arrange(whichThreshold_credits, -Number_Credits)[1,1]))+
+  labs(title = "Model Number of Credits By Threshold For Test Sample",
+       subtitle = "Vertical Line Denotes Optimal Threshold")
+
+## Plot confusion metrics for each threshold
+
+whichThreshold %>%
+  ggplot(.,aes(Threshold, ValueAdded_Minus_Expen, colour = Variable)) +
+  geom_point() +
+  scale_colour_manual(values = palette5[c(5, 1:3)]) +    
+  labs(title = "Revenue by confusion matrix type and threshold",
+       y = "Revenue") +
+  #plotTheme() +
+  guides(colour=guide_legend(title = "Confusion Matrix")) 
+
+# Optimal Threshold
+optimum_threshold <- pull(arrange(whichThreshold_revenue, -ValueAdded_Minus_Expen)[1,1])
 
 opt <- 
   whichThreshold %>% 
   group_by(Threshold) %>% 
-  summarize(Revenue = sum(Revenue),
+  summarize(ValueAdded_Minus_Expen = sum(ValueAdded_Minus_Expen),
             Number_Credits= sum(Number_Credits)) %>%
   filter(Threshold == optimum_threshold)
 
-## empty
 fifty_thresh <-
   whichThreshold %>% 
   group_by(Threshold) %>% 
-  summarize(Revenue = sum(Revenue),
+  summarize(ValueAdded_Minus_Expen = sum(ValueAdded_Minus_Expen),
             Number_Credits= sum(Number_Credits)) %>%
-  filter(Threshold == .5)
+  filter(Threshold > .499 & Threshold < .51)
 
-final <- rbind(opt, fifty_thresh) 
+final <- data.frame(rbind(opt, fifty_thresh))
 
+kable(final,
+      caption = "Cost/Benefit Table") %>% kable_styling()
+
+
+## Cross validation
+ctrl <- trainControl(method = "cv", number = 100, classProbs=TRUE, summaryFunction=twoClassSummary)
+
+cvFitkitchensink <-train(y ~ .,
+                         data=house_subsidy %>% 
+                           dplyr::select(-X, -y_numeric, -Season, -Education_group,-Age_group,-Employment, -Day, -Pdays_group) %>%
+                           dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")),
+                         method="glm", family="binomial",
+                         metric="ROC", trControl = ctrl)
+
+cvFitkitchensink
+
+cvFit <- train(y ~ .,
+               data=house_subsidy %>% 
+                 dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-poutcome,-Age_group, 
+                               -education, -job, -Pdays_group) %>%
+                 dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
+               method="glm", family="binomial",
+               metric="ROC", trControl = ctrl)
+
+
+cvFit
+
+dplyr::select(cvFitkitchensink$resample, -Resample) %>%
+  gather(metric, value) %>%
+  left_join(gather(cvFitkitchensink$results[2:4], metric, mean)) %>%
+  ggplot(aes(value)) + 
+  geom_histogram(bins=35, fill = "#FF006A") +
+  facet_wrap(~metric) +
+  geom_vline(aes(xintercept = mean), colour = "#981FAC", linetype = 3, size = 1.5) +
+  scale_x_continuous(limits = c(0, 1)) +
+  labs(x="Goodness of Fit", y="Count", title="CV Goodness of Fit Metrics Kitchen Sink Model",
+       subtitle = "Across-fold mean reprented as dotted lines")
+
+
+dplyr::select(cvFit$resample, -Resample) %>%
+  gather(metric, value) %>%
+  left_join(gather(cvFit$results[2:4], metric, mean)) %>%
+  ggplot(aes(value)) + 
+  geom_histogram(bins=35, fill = "#FF006A") +
+  facet_wrap(~metric) +
+  geom_vline(aes(xintercept = mean), colour = "#981FAC", linetype = 3, size = 1.5) +
+  scale_x_continuous(limits = c(0, 1)) +
+  labs(x="Goodness of Fit", y="Count", title="CV Goodness of Fit Metrics",
+       subtitle = "Across-fold mean reprented as dotted lines")
+
+cv <- cvFit$resample %>%
+  mutate(CrossV = 'Model')
+
+cvk <- cvFitkitchensink$resample %>%
+  mutate(CrossV = 'Kitchen')
+
+cross_v <- rbind(cv, cvk)
