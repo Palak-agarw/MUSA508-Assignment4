@@ -75,10 +75,10 @@ house_subsidy %>%
 Interpretation - these plots are not useful because they aren't normalized and have count associated, not mean
 ```{r data_vis2, warning=FALSE, message=FALSE, fig.width= 10,fig.height=12}
 # NOT WORKING
-house_subsidy$month <-factor(house_subsidy$month, 
+house_subsidy$month <-ordered(house_subsidy$month, 
                              levels=c("mar","apr","may","jun","jul","aug","sep","oct","nov","dec"))
 
-house_subsidy$day_of_week <-factor(house_subsidy$day_of_week, 
+house_subsidy$day_of_week <-ordered(house_subsidy$day_of_week, 
                              levels=c("mon","tue","wed","thu","fri"))
 
 ## categorical variables
@@ -646,6 +646,17 @@ ggplot(whichThreshold_revenue)+
   labs(title = "Model Revenues By Threshold For Test Sample",
        subtitle = "Vertical Line Denotes Optimal Threshold")
 
+whichThreshold_hcd <- 
+  whichThreshold %>% 
+  group_by(Threshold) %>% na.omit() %>%
+  summarize(HCD_Expenditure = sum(HCD_Expenditure),
+            Home_Value_Added = sum(Home_Value_Added))
+
+ggplot(whichThreshold_hcd)+
+  geom_line(aes(x = Threshold, y = HCD_Expenditure, color = "HCD_Expenditure"))+
+  geom_line(aes(x = Threshold, y = Home_Value_Added, color = "Home_Value_Added"))+
+  labs(title = "Model HCD expense and Home value addition By Threshold For Test Sample")
+
 whichThreshold_credits <- 
   whichThreshold %>% 
   group_by(Threshold) %>% 
@@ -653,8 +664,7 @@ whichThreshold_credits <-
 
 ggplot(whichThreshold_credits)+
   geom_line(aes(x = Threshold, y = Number_Credits))+
-  labs(title = "Model Number of Credits By Threshold For Test Sample",
-       subtitle = "Vertical Line Denotes Optimal Threshold")
+  labs(title = "Model Number of Credits By Threshold For Test Sample")
 
 ## Plot confusion metrics for each threshold
 
