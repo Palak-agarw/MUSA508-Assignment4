@@ -38,22 +38,14 @@ house_subsidy <- read.csv("DATA/housingSubsidy.csv")
 ```
 
 # Data Visualizations
-The mean age of those who take the credit is slightly higher than the mean age of eligible homeowners that do not take the credit
-
-The mean number of times homeowners were contacted within one campaign is higher for those who do not take the credit
-
-The mean consumer confidence index and mean consumer price index at the time of the campaign is about the same for those who take the credit and those who do not
-
-NOTE: need to change pdays because 999 represents no previous contact
-
-The mean number of contacts prior to this campaign is higher for those who take the credit than those who do not
-
-The mean amount of money spent annually on repairs is about the same
-
-Unemployment rate????
-
-Not  sure how to interpret the plots that aren't means (categorical variables)
-
+## Continuous Variables
+- the mean number of contacts within this camapgin is higher for those who do not take the credit
+- the mean number of contacts in previous campaigns is slightly higher for people who do take the credit
+-The mean amount of money spent annually on repairs is about the same
+-The mean age of those who take the credit is slightly higher than the mean age of eligible homeowners that do not take the credit
+-The mean number of times homeowners were contacted within one campaign is higher for those who do not take the credit
+-The mean consumer confidence index and mean consumer price index at the time of the campaign is about the same for those who take the credit and those who do not
+- Not sure how to interpret unemployment rate, since it ranges from -3.4 to 1.4. The mean unemployment rate is higher, or less negative, for people who do not take the credit
 
 ```{r data_vis, warning=FALSE, message=FALSE}
 ##continuous variables
@@ -72,7 +64,8 @@ house_subsidy %>%
   theme(legend.position = "none")
 ```
 
-Interpretation - these plots are not useful because they aren't normalized and have count associated, not mean
+## Categorical Variables
+Counts of different levels of each categorical variable shown below. These plots are not useful because the data aren't normalized and have count associated with them, not mean
 ```{r data_vis2, warning=FALSE, message=FALSE, fig.width= 10,fig.height=12}
 # NOT WORKING
 house_subsidy$month <-ordered(house_subsidy$month, 
@@ -211,15 +204,13 @@ house_subsidy %>%
 )
 ```
 
-### Feature Engineering
-One paragraph interpreting new features
-employment status matters more than type of job
-Seasons may impact when people are thinking about house repairs
+## Feature Engineering
+-employment status matters more than type of job
+-number of weeks since last contacted or never contacted
+- age range likely to correlate with life stage, who has kids, who is in starter home vs. forever home, etc.
+-Seasons may impact when people are thinking about house repairs
 days of week - beginning/end of week vs. middle of week, when are going to be more receptive to the marketing campaign
-
-Employment status plot weird b/c dummy var
-Struggling with interpretation of these - ask Matthew?
-
+-again these plot aren't useful because data is not normalized
 ```{r data, message=FALSE, warning=FALSE, fig.width= 12,fig.height=8}
 ## Data wrangling
 ### Employment 
@@ -345,7 +336,7 @@ house_subsidy %>%
 
 ```
 
-## Correlation
+## Correlations
 This plot shows that none of our numeric variables are strongly correlated with whether or not an eligible homeowner takes the credit. 
 
 The plot suggests that some of our numeric variables may be colinear. The unemployment rate at time of contact is strongly positively correlated with the inflation rate at time of contact. The inflation rate at time of contact is also strongly positively correlated with the amount of money spent annually on repairs.
@@ -367,16 +358,16 @@ ggcorrplot(
 ```
 
 # Compare Models
-
 A very predictive regression would show clustering of 0 (don't take the credit) around 0 and clustering of 1 (do take the credit) around 1. Neither model shows clustering around 1, indicating that these models have poor sensitivity.
 
 Need to add something about confusion matrix
-true positive means blah blah blah
-true negative means blah blah blah
-false positive means
-false negative
+true positive means we predicted they would take the credit and they took it. However, our research suggests that only 25% of our true positives will actually take the credit
+true negative means we predicted they would not take the credit and they didn't
+false positive means we predicted they would take the credit, but they did not
+false negative means we predicted they would not take the credit, but they did
 
 Compare confusion matrices of both regressions
+-our model with feature engineering is not better than the "kitchen sink" model. Both have low sensitivities (true positive rate)
 ```{r regs, message=FALSE, warning=FALSE}
 #house_subsidy <- rename(house_subsidy,y.numeric=y_numeric)
 
@@ -463,8 +454,8 @@ caret::confusionMatrix(testProbs$predOutcome, testProbs$Outcome,
 ```
 
 ## Cross Validation
-Compare and interpret two facetted plots of ROC, sensitivity, and specificity
-Ours is (sometimes) worse :(
+-test both models using cross-validation. again, shows low sensitivity and high specificity (true negative) rates for both models
+-plots show the area under the ROC curve, sensitivity, and specificity. If model were generalizable, would expect all of these plots to be clustered around mean.
 ```{r cv, message=FALSE, warning=FALSE, fig.width= 8, fig.height=4}
 
 
@@ -519,13 +510,9 @@ grid.arrange(ncol = 2,
 ```
 
 
-### Receiver Operating Characteristic Curve
-Interpret ROC curve for new model
-Visualizes trade-offs of the model.When increase true positives, also increase false positives, that means HCD will waste money on marketing
-
-add explanation about trade offs for thresholds
-
-explain AUC,100% is overfit, 50% would be coin flip, this indicates that our model predicts reasonably well and is generalizable, this is a goodness of fit metric
+## Receiver Operating Characteristic Curve
+-Visualizes trade-offs of the model.When increase true positives, also increase false positives, that means HCD will waste money on marketing
+-explain AUC,100% is overfit, 50% would be coin flip, this indicates that our model predicts reasonably well and is generalizable, this is a goodness of fit metric
 ```{r ROC, warning=FALSE, message=FALSE}
 ## ROC curve
 # This us a goodness of fit measure, 1 would be a perfect fit, .5 is a coin toss
@@ -539,11 +526,15 @@ ggplot(testProbs, aes(d = as.numeric(testProbs$Outcome), m = Probs)) +
 ```
 
 # Cost/Benefit Analysis
-Write out the cost/benefit equation for each confusion metric
-We chose to split HCD expenditures and value addd to houses
-Explain why false negatives are 0
-Explain why did not multiply by 25%, it is stupid and makes no sense, our analysts are smarter
-Use confusion matrix numbers to show why the 25% math doesn't work
+Split this into HCD expenditures and increases to house values:
+
+-True negative: no HCD expenditure, no housing increases, Count*0
+
+- True positive: HCD spends $2850 on marketing for all true positives and $5000 on tax credit for the 25% that actually take it, equation is (Count*2850)+(Count*.25*5000); benefit is $10000 increase in home value plus $56000 increase in value of surrounding homes, equation is (.25*Count*10000)+(.25*Count*56000)
+
+- false negative: HCD did not spend money on marketing, but homeowner still took credit. Since we are analyzing impact of marketing campaign, we zero this out. Equation for both is Count*0
+
+- false positive: HCD spends money on marketing, equation is count*2850. No increase in values to homes. Equation is Count*0
 
 ```{r cb_analysis, message=FALSE, warning=FALSE}
 ## Cost benefit
@@ -562,12 +553,12 @@ cost_benefit_table <-
                 Variable == "False_Positive" ~ (Count*2850))) %>%
   mutate(Home_Value_Added =
            case_when(Variable == "True_Negative" ~ Count*0,
-                Variable == "True_Positive" ~ (Count*10000)+(Count*56000),
+                Variable == "True_Positive" ~ (Count*.25*10000)+(Count*.25*56000),
                 Variable == "False_Negative" ~ Count*0,
                 Variable == "False_Positive" ~ -(Count*0))) %>%
   mutate(Number_Credits =
            case_when(Variable == "True_Negative" ~ Count*0,
-                     Variable == "True_Positive" ~ Count*1,
+                     Variable == "True_Positive" ~ Count*.25,
                      Variable == "False_Negative" ~ Count*0,
                      Variable == "False_Positive" ~ Count*0)) %>%
   bind_cols(data.frame(Description = c(
@@ -581,15 +572,13 @@ kable(cost_benefit_table,
 ```
 
 ## Comparing Thresholds
-Plot confusion metrics for each threshold
-create two small multiple plots to show Threshold as a function of Total_Revenue and Total_Count_of_Credits; interpret
-Create a table ofTotal_Revenue and Total_Count_of_Credits for 2 categories, 50% and optimal threshold -- NEED TO ADD THIS
+### Confusion Metric Plots
+- for HCD expenditure by confusion metric, explain that can't see true negative because it is also 0
+-this plot shows that the HCD expenditure on false positives decreases steeply as threshold increases until a threshold of about 12.5
+- for added value to homes by confusion metric plot, value added would be highest at a threshold of 0. However, a lot of money would be wasted on marketing, as seen in the previous plot
 
-explain that can't see true neg because rev also 0
-Explain why put together HCD expenditures and added household here, because goal is to minimize expenditures and maximize hosuehold values
-Also separate them into HCD spending an house value
+```{r confmetrics, message=FALSE, warning=FALSE}
 
-```{r thresholds, message=FALSE, warning=FALSE}
 ## Optimise threshold
 iterateThresholds <- function(data) {
   x = .01
@@ -613,12 +602,12 @@ iterateThresholds <- function(data) {
             Threshold = x,
             Number_Credits =
                ifelse(Variable == "True_Negative", Count * 0,
-               ifelse(Variable == "True_Positive", (Count*1),
+               ifelse(Variable == "True_Positive", (Count*.25),
                ifelse(Variable == "False_Negative", Count*0,
                ifelse(Variable == "False_Positive", Count*0,0)))),
             Home_Value_Added =
            case_when(Variable == "True_Negative" ~ Count*0,
-                Variable == "True_Positive" ~ (Count*10000)+(Count*56000),
+                Variable == "True_Positive" ~ (Count*10000*.25)+(Count*56000*.25),
                 Variable == "False_Negative" ~ Count*0,
                 Variable == "False_Positive" ~ -(Count*0)),
            Revenue =
@@ -635,16 +624,34 @@ iterateThresholds <- function(data) {
 
 whichThreshold <- iterateThresholds(testProbs)
 
-whichThreshold_revenue <- 
-  whichThreshold %>% 
-  group_by(Threshold) %>% na.omit() %>%
-  summarize(Revenue = sum(Revenue))
 
-ggplot(whichThreshold_revenue)+
-  geom_line(aes(x = Threshold, y = Revenue))+
-  geom_vline(xintercept =  pull(arrange(whichThreshold_revenue, -Revenue)[1,1]))+
-  labs(title = "Model Revenues By Threshold For Test Sample",
-       subtitle = "Vertical Line Denotes Optimal Threshold")
+## Plot confusion metrics for each threshold
+whichThreshold %>%
+  ggplot(.,aes(Threshold, HCD_Expenditure, colour = Variable)) +
+  geom_point() +
+  scale_colour_manual(values = palette5[c(5, 1:3)]) +    
+  labs(title = "HCD Expenditure by confusion metric type and threshold",
+       y = "Expenditure") +
+  #plotTheme() +
+  guides(colour=guide_legend(title = "Confusion Metrics")) 
+
+whichThreshold %>% filter(Variable == "True_Positive") %>%
+  ggplot(.,aes(Threshold, Home_Value_Added, colour = Variable)) +
+  geom_point() +
+  scale_colour_manual(values = "#FF006A") +    
+  labs(title = "Value added to homes by true positive metric and threshold",
+       y = "Value added") +
+  #plotTheme() +
+  guides(colour=guide_legend(title = "Confusion Metric")) 
+```
+
+
+### Threshold Plots
+- First plot shows both HCD expenditures and value added to homes for each threshold. The goal is to minimize HCD expenditures while maximizing value added to homes
+-The second plot combines these terms, taking the value added to homes and subtracting HCD expenditures for each threshold. This shows that the optimal threshold is about .2, meaning any homeowner with a 20% probability of taking the credit is considered a "positive" case. This plot also shows that at thresholds below about 10%, HCD spends more money than is gained by adding value to houses
+- the third plot shows the number of tax credits claimed at each threshold.This shows that the highest number of tax credits would be claimed with a very low threshold, meaning almost every eligible homeowner would receive marketing materials. However, the previous plots show that this would cost too much money compared to the financial benefits to the homeowners
+- the final table shows the HCD expenditures and value added to homes for our optimal threshold of 20% and a default threshold of 50%. The 50% threshold saves HCD money in marketing, but the value added to homes is also quite low. At a 20% threshold, HCD spends $527,800 in marketing and tax credits, which lead to a $1,023,000 increase in the value of the homes
+```{r thresholds, message=FALSE, warning=FALSE}
 
 whichThreshold_hcd <- 
   whichThreshold %>% 
@@ -655,7 +662,18 @@ whichThreshold_hcd <-
 ggplot(whichThreshold_hcd)+
   geom_line(aes(x = Threshold, y = HCD_Expenditure, color = "HCD_Expenditure"))+
   geom_line(aes(x = Threshold, y = Home_Value_Added, color = "Home_Value_Added"))+
-  labs(title = "Model HCD expense and Home value addition By Threshold For Test Sample")
+  labs(title = "Model HCD expense and Home value addition By Threshold \nFor Test Sample", y = "Dollars")+theme(legend.title = element_blank())
+
+whichThreshold_revenue <- 
+  whichThreshold %>% 
+  group_by(Threshold) %>% na.omit() %>%
+  summarize(Revenue = sum(Revenue))
+
+ggplot(whichThreshold_revenue)+
+  geom_line(aes(x = Threshold, y = Revenue))+
+  geom_vline(xintercept =  pull(arrange(whichThreshold_revenue, -Revenue)[1,1]))+
+  labs(title = "Home Value Aded Minus HCD Expenditures By Threshold For Test Sample",
+       subtitle = "Vertical Line Denotes Optimal Threshold")
 
 whichThreshold_credits <- 
   whichThreshold %>% 
@@ -666,16 +684,7 @@ ggplot(whichThreshold_credits)+
   geom_line(aes(x = Threshold, y = Number_Credits))+
   labs(title = "Model Number of Credits By Threshold For Test Sample")
 
-## Plot confusion metrics for each threshold
 
-whichThreshold %>%
-  ggplot(.,aes(Threshold, HCD_Expenditure, colour = Variable)) +
-  geom_point() +
-  scale_colour_manual(values = palette5[c(5, 1:3)]) +    
-  labs(title = "Revenue by confusion metric type and threshold",
-       y = "Revenue") +
-  #plotTheme() +
-  guides(colour=guide_legend(title = "Confusion Metrics")) 
 
 # Optimal Threshold
 optimum_threshold <- pull(arrange(whichThreshold_revenue, -Revenue)[1,1])
@@ -705,3 +714,5 @@ kable(final,
 
 # Conclusion
 Should this model be put into production? What could make the model better? What would you do to ensure that the marketing materials result in a better response rate?
+- model has low sensitivty. HCD could save money on marketing with increased sensitivity.
+- maybe add more demographic information to the model?
