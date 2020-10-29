@@ -60,6 +60,7 @@ Not  sure how to interpret the plots that aren't means (categorical variables)
 house_subsidy %>%
   dplyr::select(y,unemploy_rate, spent_on_repairs, age, campaign, 
                 previous,cons.price.idx,cons.conf.idx) %>%
+  rename("Unemployment Rate" = unemploy_rate, "$ Spent on Repairs" = spent_on_repairs, "Age of Homeowner"=age, "# of contacts"=campaign, "# of previous contacts"=previous, "Cons. Price Index"=cons.price.idx, "Cons. Conf. Index"=cons.conf.idx) %>%
   gather(Variable, value, -y) %>%
   ggplot(aes(y, value, fill=y)) + 
   geom_bar(position = "dodge", stat = "summary", fun = "mean") + 
@@ -73,6 +74,13 @@ house_subsidy %>%
 
 Interpretation - these plots are not useful because they aren't normalized and have count associated, not mean
 ```{r data_vis2, warning=FALSE, message=FALSE, fig.width= 10,fig.height=12}
+# NOT WORKING
+house_subsidy$month <-factor(house_subsidy$month, 
+                             levels=c("mar","apr","may","jun","jul","aug","sep","oct","nov","dec"))
+
+house_subsidy$day_of_week <-factor(house_subsidy$day_of_week, 
+                             levels=c("mon","tue","wed","thu","fri"))
+
 ## categorical variables
 grid.arrange(ncol=3,
 house_subsidy %>%
@@ -84,7 +92,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Education association with likelihood of taking credit")+
+       title = "Education association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45)),
      
 
@@ -98,7 +106,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Job type association with the likelihood of taking credit")+
+       title = "Job type association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45)),
 
 ## Marital
@@ -111,7 +119,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Marital status association with the likelihood of taking credit")+
+       title = "Marital status association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45)),
 
 ## taxLien
@@ -124,7 +132,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Tax Lien association with the likelihood of taking credit")+
+       title = "Tax Lien association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45)),
 
 house_subsidy %>%
@@ -136,7 +144,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Mortgag association with the likelihood of taking credit")+
+       title = "Mortgag association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45)),
 
 house_subsidy %>%
@@ -148,7 +156,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Full-time residence in Philadelphia association with the likelihood of taking credit")+
+       title = "Full-time residence in Philly association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45)),
 
 house_subsidy %>%
@@ -160,7 +168,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Previous contact association with the likelihood of taking credit")+
+       title = "Previous contact association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45)),
 
 # Change order of months
@@ -173,7 +181,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Month contacted association with the likelihood of taking credit")+
+       title = "Month contacted association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45)),
 
 # Change order of days
@@ -186,7 +194,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Day contacted association with the likelihood of taking credit")+
+       title = "Day contacted association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45)),
 
 house_subsidy %>%
@@ -198,7 +206,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="\n Take Credit", y="Count",
-       title = "Outcome of previous campaign association with the likelihood of taking credit")+
+       title = "Outcome of previous campaign association \nwith likelihood of taking credit")+
   theme(axis.text.x = element_text(angle = 45))
 )
 ```
@@ -278,7 +286,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Employment status association with the likelihood of taking credit"),
+       title = "Employment status association \nwith likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, Age_group) %>%
@@ -289,7 +297,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Age group association with the likelihood of taking credit"),
+       title = "Age group association \nwith likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, Education_group) %>%
@@ -300,7 +308,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Education group association with the likelihood of taking credit"),
+       title = "Education group association \nwith likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, Season) %>%
@@ -311,7 +319,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Season contacted association with the likelihood of taking credit"),
+       title = "Season contacted association \nwith likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, Day) %>%
@@ -322,7 +330,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Day contacted association with the likelihood of taking credit"),
+       title = "Day contacted association \nwith likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, Pdays_group) %>%
@@ -333,9 +341,10 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Time associated with contacted association with the likelihood of taking credit"))
+       title = "Time associated with contacted association \nwith likelihood of taking credit"))
 
 ```
+
 ## Correlation
 This plot shows that none of our numeric variables are strongly correlated with whether or not an eligible homeowner takes the credit. 
 
@@ -356,6 +365,7 @@ ggcorrplot(
 
 
 ```
+
 # Compare Models
 
 A very predictive regression would show clustering of 0 (don't take the credit) around 0 and clustering of 1 (do take the credit) around 1. Neither model shows clustering around 1, indicating that these models have poor sensitivity.
