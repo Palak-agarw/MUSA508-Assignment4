@@ -300,7 +300,7 @@ house_subsidy %>%
 ## Correlation
 This plot shows that none of our numeric variables are strongly correlated with whether or not an eligible homeowner takes the credit. 
 
-The plot suggests that some of our numeric variables may be colinear. The unemployment rate at time of contact is strongly negatively correlated with the inflation rate at time of contact. The inflation rate at time of contact is also strongly negatively correlated with the amount of money spent annually on repairs.
+The plot suggests that some of our numeric variables may be colinear. The unemployment rate at time of contact is strongly positively correlated with the inflation rate at time of contact. The inflation rate at time of contact is also strongly positively correlated with the amount of money spent annually on repairs.
 ```{r correlation, message=FALSE, warning=FALSE}
 
 numericVars1 <- 
@@ -318,11 +318,14 @@ ggcorrplot(
 
 ```
 # Compare Models
-Question for Palak - why isn't y_numeric removed from the models?
 
 A very predictive regression would show clustering of 0 (don't take the credit) around 0 and clustering of 1 (do take the credit) around 1. Neither model shows clustering around 1, indicating that these models have poor sensitivity.
 
 Need to add something about confusion matrix
+true positive means blah blah blah
+true negative means blah blah blah
+false positive means
+false negative
 ```{r regs, message=FALSE, warning=FALSE}
 #house_subsidy <- rename(house_subsidy,y.numeric=y_numeric)
 
@@ -462,7 +465,11 @@ dplyr::select(cvFit$resample, -Resample) %>%
 
 ### Receiver Operating Characteristic Curve
 Interpret ROC curve for new model
-Visualizes trade-offs fo the model.When increase true positives, also increase false positives, that means HCD will waste money on marketing
+Visualizes trade-offs of the model.When increase true positives, also increase false positives, that means HCD will waste money on marketing
+
+add explanation about trade offs for thresholds
+
+explain AUC,100% is overfit, 50% would be coin flip, this indicates that our model predicts reasonably well and is generalizable, this is a goodness of fit metric
 ```{r ROC, warning=FALSE, message=FALSE}
 ## ROC curve
 # This us a goodness of fit measure, 1 would be a perfect fit, .5 is a coin toss
@@ -477,6 +484,7 @@ ggplot(testProbs, aes(d = as.numeric(testProbs$Outcome), m = Probs)) +
 
 # Cost/Benefit Analysis
 Write out the cost/benefit equation for each confusion metric
+CHANGE HERE TO ADD THIRD COLUMN
 
 ```{r cb_analysis, message=FALSE, warning=FALSE}
 ## Cost benefit
@@ -511,9 +519,8 @@ kable(cost_benefit_table,
 ## Comparing Thresholds
 Plot confusion metrics for each threshold
 create two small multiple plots to show Threshold as a function of Total_Revenue and Total_Count_of_Credits; interpret
-Create a table ofTotal_Revenue and Total_Count_of_Credits for 2 categories, 50% and optimal threshold
+Create a table ofTotal_Revenue and Total_Count_of_Credits for 2 categories, 50% and optimal threshold -- NEED TO ADD THIS
 
-GETTING AN ERROR
 ```{r thresholds, message=FALSE, warning=FALSE}
 ## Optimise threshold
 iterateThresholds <- function(data) {
