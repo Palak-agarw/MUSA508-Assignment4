@@ -521,3 +521,6 @@ fifty_thresh <-
   summarize(Revenue = sum(Revenue),
             Number_Credits= sum(Number_Credits)) %>%
   filter(Threshold == .5)
+
+final <- rbind(opt, fifty_thresh) 
+
