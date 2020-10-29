@@ -45,12 +45,12 @@ house_subsidy <- read.csv("DATA/housingSubsidy.csv")
 Below are some data visualizations - both of numeric and categorical variables. 
 
 From the below plots the following interpretations can be made :     
-*The mean number of contacts prior to this campaign is higher for those who take the credit than those who do not.
-*The mean amount of money spent annually on repairs is about the same.
-*The mean age of those who take the credit is slightly higher than the mean age of eligible homeowners that do not take the credit.         
-*The mean number of times homeowners were contacted within one campaign is higher for those who do not take the credit.
-*The mean consumer confidence index and mean consumer price index at the time of the campaign is about the same for those who take the credit and those who do not.
-*The mean unemployment rate is higher during more successful campaigns. 
+-The mean number of contacts prior to this campaign is higher for those who take the credit than those who do not.
+-The mean amount of money spent annually on repairs is about the same.
+-The mean age of those who take the credit is slightly higher than the mean age of eligible homeowners that do not take the credit.         
+-The mean number of times homeowners were contacted within one campaign is higher for those who do not take the credit.
+-The mean consumer confidence index and mean consumer price index at the time of the campaign is about the same for those who take the credit and those who do not.
+-The mean unemployment rate is higher during more successful campaigns. 
 ```{r data_vis, warning=FALSE, message=FALSE}
 ##continuous variables
 house_subsidy %>%
@@ -210,11 +210,11 @@ house_subsidy %>%
 
 ### Feature Engineering
 For this part of the model, we used the above plots to identify a few variables that did not make sense to have as they were presented. Below are the modified  features:   
-*Employment status - As the status of employment matters more than type of job, we reduced the job category to only 2 categories - employment and unemployed.     
-*Seasons - Checking when the user was contacted and identifying the season during that call improved the model. Seasons may impact when people are thinking about house repairs and are more likely to accept the credit during certain seasons.       
-*Days of week - Beginning and end of week calls to users might reduce their receptiveness to the marketing campaign when compared to calls during the mid week calls.       
-* Education & Age - The specific values of these columns are not as important as the larger brackets they fall under hence we feature engineered them to create smaller categories.     
-*Pday - When the consumer was contacted has been made categorical.      
+-Employment status - As the status of employment matters more than type of job, we reduced the job category to only 2 categories - employment and unemployed.     
+-Seasons - Checking when the user was contacted and identifying the season during that call improved the model. Seasons may impact when people are thinking about house repairs and are more likely to accept the credit during certain seasons.       
+-Days of week - Beginning and end of week calls to users might reduce their receptiveness to the marketing campaign when compared to calls during the mid week calls.       
+-Education & Age - The specific values of these columns are not as important as the larger brackets they fall under hence we feature engineered them to create smaller categories.     
+-Pday - When the consumer was contacted has been made categorical.      
        
 Then the new variables were plotted. again these plot aren't useful because data is not normalized.
 ```{r data, message=FALSE, warning=FALSE, fig.width= 12,fig.height=8}
@@ -365,9 +365,9 @@ ggcorrplot(
 
 # Compare Models    
      
-There are two models used in the regression below. One is the **Kitchen Sink Model** and the other is the **Feature Engineered Model.** Our model with feature engineering is not better than the "kitchen sink" model. Both have low sensitivities (true positive rate). 
-       
-Confusion Matrix :    
+There are two models used in the regression below. One is the **Kitchen Sink Model** and the other is the **Feature Engineered Model.** Our model with feature engineering is not better than the "kitchen sink" model. Both have low sensitivities (true positive rate).         
+           
+Confusion Matrix :                 
 The confusion metrics as you can see has 4 possible outputs - combinations of 0 and 1.
 1.True positive means we predicted they would take the credit and they took it. However, our research suggests that only 25% of our true positives will actually take the credit. (1 - observed, 1 - predicted)             
 2.True negative means we predicted they would not take the credit and they didn't. (0 - observed, 0 - predicted)          
@@ -533,8 +533,8 @@ ggplot(testProbs, aes(d = as.numeric(testProbs$Outcome), m = Probs)) +
 ```
 
 # Cost/Benefit Analysis
-Split this into HCD expenditures and increases to house values:
-
+Split this into HCD expenditures and increases to house values:       
+           
 -True negative: no HCD expenditure, no housing increases, Count*0
 
 - True positive: HCD spends $2850 on marketing for all true positives and $5000 on tax credit for the 25% that actually take it, equation is (Count*2850)+(Count*.25*5000); benefit is $10000 increase in home value plus $56000 increase in value of surrounding homes, equation is (.25*Count*10000)+(.25*Count*56000)
