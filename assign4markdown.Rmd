@@ -69,9 +69,12 @@ house_subsidy %>%
        title = "Feature associations with the likelihood of taking credit",
        subtitle = "(continous outcomes)") +
   theme(legend.position = "none")
+```
 
+Interpretation - these plots are not useful because they aren't normalized and have count associated, not mean
+```{r data_vis2, warning=FALSE, message=FALSE, fig.width= 10,fig.height=10}
 ## categorical variables
-#grid.arrange(ncol=5,
+grid.arrange(ncol=3,
 house_subsidy %>%
   dplyr::select(y, education) %>%
   gather(Variable, value, -y) %>%
@@ -81,7 +84,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Education association with likelihood of taking credit")
+       title = "Education association with likelihood of taking credit"),
      
 
 ## Jobs
@@ -94,7 +97,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Job type association with the likelihood of taking credit")
+       title = "Job type association with the likelihood of taking credit"),
 
 ## Marital
 house_subsidy %>%
@@ -106,7 +109,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Marital status association with the likelihood of taking credit")
+       title = "Marital status association with the likelihood of taking credit"),
 
 ## taxLien
 house_subsidy %>%
@@ -118,7 +121,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Tax Lien association with the likelihood of taking credit")
+       title = "Tax Lien association with the likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, mortgage) %>%
@@ -129,7 +132,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Mortgag association with the likelihood of taking credit")
+       title = "Mortgag association with the likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, taxbill_in_phl) %>%
@@ -140,7 +143,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Full-time residence in Philadelphia association with the likelihood of taking credit")
+       title = "Full-time residence in Philadelphia association with the likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, contact) %>%
@@ -151,7 +154,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Previous contact association with the likelihood of taking credit")
+       title = "Previous contact association with the likelihood of taking credit"),
 
 # Change order of months
 house_subsidy %>%
@@ -163,7 +166,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Month contacted association with the likelihood of taking credit")
+       title = "Month contacted association with the likelihood of taking credit"),
 
 # Change order of days
 house_subsidy %>%
@@ -175,7 +178,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Day contacted association with the likelihood of taking credit")
+       title = "Day contacted association with the likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, poutcome) %>%
@@ -187,11 +190,14 @@ house_subsidy %>%
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
        title = "Outcome of previous campaign association with the likelihood of taking credit")
-#)
+)
 ```
 
 ### Feature Engineering
 One paragraph interpreting new features
+employment status matters more than type of job
+Seasons may impact when people are thinking about house repairs
+days of week - beginning/end of week vs. middle of week, when are going to be more receptive to the marketing campaign
 
 Employment status plot weird b/c dummy var
 Struggling with interpretation of these - ask Matthew?
@@ -199,6 +205,7 @@ Struggling with interpretation of these - ask Matthew?
 ```{r data, message=FALSE, warning=FALSE}
 ## Data wrangling
 ### Employment 
+#grid.arrange (ncol=3,
 house_subsidy <-
   house_subsidy %>%
   mutate(Employment = ifelse(house_subsidy$job == "blue-collar"|house_subsidy$job == "services"|house_subsidy$job =="admin."|house_subsidy$job =="entrepreneur"|
@@ -295,6 +302,7 @@ house_subsidy %>%
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
        title = "Day contacted association with the likelihood of taking credit")
+)
 
 ```
 ## Correlation
@@ -326,6 +334,8 @@ true positive means blah blah blah
 true negative means blah blah blah
 false positive means
 false negative
+
+Compare confusion matrices of both regressions
 ```{r regs, message=FALSE, warning=FALSE}
 #house_subsidy <- rename(house_subsidy,y.numeric=y_numeric)
 
@@ -411,6 +421,7 @@ caret::confusionMatrix(testProbs$predOutcome, testProbs$Outcome,
 
 ## Cross Validation
 Compare and interpret two facetted plots of ROC, sensitivity, and specificity
+Ours is (sometimes) worse :(
 ```{r cv, message=FALSE, warning=FALSE}
 
 
@@ -484,7 +495,10 @@ ggplot(testProbs, aes(d = as.numeric(testProbs$Outcome), m = Probs)) +
 
 # Cost/Benefit Analysis
 Write out the cost/benefit equation for each confusion metric
-CHANGE HERE TO ADD THIRD COLUMN
+We chose to split HCD expenditures and value addd to houses
+Explain why false negatives are 0
+Explain why did not multiply by 25%, it is stupid and makes no sense, our analysts are smarter
+Use confusion matrix numbers to show why the 25% math doesn't work
 
 ```{r cb_analysis, message=FALSE, warning=FALSE}
 ## Cost benefit
@@ -525,6 +539,10 @@ kable(cost_benefit_table,
 Plot confusion metrics for each threshold
 create two small multiple plots to show Threshold as a function of Total_Revenue and Total_Count_of_Credits; interpret
 Create a table ofTotal_Revenue and Total_Count_of_Credits for 2 categories, 50% and optimal threshold -- NEED TO ADD THIS
+
+explain that can't see true neg because rev also 0
+Explain why put together HCD expenditures and added household here, because goal is to minimize expenditures and maximize hosuehold values
+Also separate them into HCD spending an house value
 
 ```{r thresholds, message=FALSE, warning=FALSE}
 ## Optimise threshold
@@ -589,10 +607,10 @@ whichThreshold %>%
   ggplot(.,aes(Threshold, ValueAdded_Minus_Expen, colour = Variable)) +
   geom_point() +
   scale_colour_manual(values = palette5[c(5, 1:3)]) +    
-  labs(title = "Revenue by confusion matrix type and threshold",
+  labs(title = "Revenue by confusion metric type and threshold",
        y = "Revenue") +
   #plotTheme() +
-  guides(colour=guide_legend(title = "Confusion Matrix")) 
+  guides(colour=guide_legend(title = "Confusion Metrics")) 
 
 # Optimal Threshold
 optimum_threshold <- pull(arrange(whichThreshold_revenue, -ValueAdded_Minus_Expen)[1,1])
