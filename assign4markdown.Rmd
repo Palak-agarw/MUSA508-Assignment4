@@ -604,15 +604,16 @@ iterateThresholds <- function(data) {
                 False_Positive = sum(n[predOutcome==1 & Outcome==0])) %>%
       gather(Variable, Count) %>%
       mutate(ValueAdded_Minus_Expen =
-               if_else(Variable == "True_Negative", Count * 0,
-               if_else(Variable == "True_Positive", (Count*1000)+(Count*56000)-(Count*2850)-(Count*5000),
-               if_else(Variable == "False_Negative", Count*0,
-               if_else(Variable == "False_Positive", Count*2850,0)))), Threshold = x) %>%
-      mutate(Number_Credits=
-               case_when(Variable == "True_Negative" ~ Count*0,
-                         Variable == "True_Positive" ~ Count*.25,
-                         Variable == "False_Negative" ~ Count*0,
-                         Variable == "False_Positive" ~ Count*0))
+               ifelse(Variable == "True_Negative", Count * 0,
+               ifelse(Variable == "True_Positive", Count*(66000-7850),
+               ifelse(Variable == "False_Negative", Count*0,
+               ifelse(Variable == "False_Positive", Count * (2850),0)))), 
+            Threshold = x,
+            Number_Credits =
+               ifelse(Variable == "True_Negative", Count * 0,
+               ifelse(Variable == "True_Positive", (Count*1),
+               ifelse(Variable == "False_Negative", Count*0,
+               ifelse(Variable == "False_Positive", Count*0,0)))))
     
     all_prediction <- rbind(all_prediction, this_prediction)
     x <- x + .01
@@ -635,7 +636,7 @@ ggplot(whichThreshold_revenue)+
 
 whichThreshold_credits <- 
   whichThreshold %>% 
-  group_by(Threshold) %>% na.omit() %>%
+  group_by(Threshold) %>% 
   summarize(Number_Credits= sum(Number_Credits))
 
 ggplot(whichThreshold_credits)+
