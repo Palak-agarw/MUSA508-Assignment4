@@ -594,6 +594,26 @@ whichThreshold %>%
   #plotTheme() +
   guides(colour=guide_legend(title = "Confusion Matrix")) 
 
+# Optimal Threshold
+optimum_threshold <- pull(arrange(whichThreshold_revenue, -ValueAdded_Minus_Expen)[1,1])
+
+opt <- 
+  whichThreshold %>% 
+  group_by(Threshold) %>% 
+  summarize(ValueAdded_Minus_Expen = sum(ValueAdded_Minus_Expen),
+            Number_Credits= sum(Number_Credits)) %>%
+  filter(Threshold == optimum_threshold)
+
+## empty
+fifty_thresh <-
+  whichThreshold %>% 
+  group_by(Threshold) %>% 
+  summarize(ValueAdded_Minus_Expen = sum(ValueAdded_Minus_Expen),
+            Number_Credits= sum(Number_Credits)) %>%
+  filter(Threshold > .499 & Threshold < .51)
+
+final <- rbind(opt, fifty_thresh) 
+
 ```
 
 # Conclusion
