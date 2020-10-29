@@ -58,7 +58,7 @@ Not  sure how to interpret the plots that aren't means (categorical variables)
 ```{r data_vis, warning=FALSE, message=FALSE}
 ##continuous variables
 house_subsidy %>%
-  dplyr::select(y,unemploy_rate, spent_on_repairs, age, campaign, pdays, 
+  dplyr::select(y,unemploy_rate, spent_on_repairs, age, campaign, 
                 previous,cons.price.idx,cons.conf.idx) %>%
   gather(Variable, value, -y) %>%
   ggplot(aes(y, value, fill=y)) + 
@@ -72,7 +72,7 @@ house_subsidy %>%
 ```
 
 Interpretation - these plots are not useful because they aren't normalized and have count associated, not mean
-```{r data_vis2, warning=FALSE, message=FALSE, fig.width= 10,fig.height=10}
+```{r data_vis2, warning=FALSE, message=FALSE, fig.width= 10,fig.height=12}
 ## categorical variables
 grid.arrange(ncol=3,
 house_subsidy %>%
@@ -83,8 +83,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Education association with likelihood of taking credit"),
+  labs(x="\n Take Credit", y="Count",
+       title = "Education association with likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45)),
      
 
 ## Jobs
@@ -96,8 +97,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Job type association with the likelihood of taking credit"),
+  labs(x="\n Take Credit", y="Count",
+       title = "Job type association with the likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45)),
 
 ## Marital
 house_subsidy %>%
@@ -108,8 +110,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Marital status association with the likelihood of taking credit"),
+  labs(x="\n Take Credit", y="Count",
+       title = "Marital status association with the likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45)),
 
 ## taxLien
 house_subsidy %>%
@@ -120,8 +123,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Tax Lien association with the likelihood of taking credit"),
+  labs(x="\n Take Credit", y="Count",
+       title = "Tax Lien association with the likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45)),
 
 house_subsidy %>%
   dplyr::select(y, mortgage) %>%
@@ -131,8 +135,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Mortgag association with the likelihood of taking credit"),
+  labs(x="\n Take Credit", y="Count",
+       title = "Mortgag association with the likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45)),
 
 house_subsidy %>%
   dplyr::select(y, taxbill_in_phl) %>%
@@ -142,8 +147,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Full-time residence in Philadelphia association with the likelihood of taking credit"),
+  labs(x="\n Take Credit", y="Count",
+       title = "Full-time residence in Philadelphia association with the likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45)),
 
 house_subsidy %>%
   dplyr::select(y, contact) %>%
@@ -153,8 +159,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Previous contact association with the likelihood of taking credit"),
+  labs(x="\n Take Credit", y="Count",
+       title = "Previous contact association with the likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45)),
 
 # Change order of months
 house_subsidy %>%
@@ -165,8 +172,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Month contacted association with the likelihood of taking credit"),
+  labs(x="\n Take Credit", y="Count",
+       title = "Month contacted association with the likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45)),
 
 # Change order of days
 house_subsidy %>%
@@ -177,8 +185,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Day contacted association with the likelihood of taking credit"),
+  labs(x="\n Take Credit", y="Count",
+       title = "Day contacted association with the likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45)),
 
 house_subsidy %>%
   dplyr::select(y, poutcome) %>%
@@ -188,8 +197,9 @@ house_subsidy %>%
   geom_bar(position = "dodge", stat="identity") +
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Outcome of previous campaign association with the likelihood of taking credit")
+  labs(x="\n Take Credit", y="Count",
+       title = "Outcome of previous campaign association with the likelihood of taking credit")+
+  theme(axis.text.x = element_text(angle = 45))
 )
 ```
 
@@ -202,26 +212,24 @@ days of week - beginning/end of week vs. middle of week, when are going to be mo
 Employment status plot weird b/c dummy var
 Struggling with interpretation of these - ask Matthew?
 
-```{r data, message=FALSE, warning=FALSE}
+```{r data, message=FALSE, warning=FALSE, fig.width= 12,fig.height=8}
 ## Data wrangling
 ### Employment 
-#grid.arrange (ncol=3,
+
 house_subsidy <-
   house_subsidy %>%
   mutate(Employment = ifelse(house_subsidy$job == "blue-collar"|house_subsidy$job == "services"|house_subsidy$job =="admin."|house_subsidy$job =="entrepreneur"|
                                house_subsidy$job =="self-employed"|house_subsidy$job =="technician"|house_subsidy$job =="management"|
                                house_subsidy$job =="housemaid",1,0))
-
-house_subsidy %>%
-  dplyr::select(y, Employment) %>%
-  gather(Variable, value, -y) %>%
-  count(Variable, value, y) %>%
-  ggplot(aes(value, n, fill = y)) +   
-  geom_bar(position = "dodge", stat="identity") +
-  facet_wrap(~Variable, scales="free") +
-  scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Employment status association with the likelihood of taking credit")
+### Pdays 
+house_subsidy <-
+  house_subsidy %>%
+  mutate(Pdays_group = case_when(
+    pdays >= 1 & pdays <= 7 ~ "In a week",
+    pdays >= 8 & pdays <= 14  ~ "Second week",
+    pdays >= 15 & pdays <= 21  ~ "Third week",
+    pdays >= 22 & age < 999  ~ "After a month",
+    pdays >= 999   ~ "Never contacted"))
 
 ### Age
 house_subsidy <-
@@ -234,17 +242,6 @@ house_subsidy <-
     age >= 50 & age < 65   ~ "50-65",
     age >= 65   ~ "Above 65"))
 
-house_subsidy %>%
-  dplyr::select(y, Age_group) %>%
-  gather(Variable, value, -y) %>%
-  count(Variable, value, y) %>%
-  ggplot(aes(value, n, fill = y)) +   
-  geom_bar(position = "dodge", stat="identity") +
-  facet_wrap(~Variable, scales="free") +
-  scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Age group association with the likelihood of taking credit")
-
 ### Education
 house_subsidy <-
   house_subsidy %>%
@@ -253,17 +250,6 @@ house_subsidy <-
     education == "high.school"  ~ "High School",
     education == "university.degree" |education == "professional.course"  ~ "College",
     education == "unknown" |education == "illiterate"  ~ "Illiterate"))
-
-house_subsidy %>%
-  dplyr::select(y, Education_group) %>%
-  gather(Variable, value, -y) %>%
-  count(Variable, value, y) %>%
-  ggplot(aes(value, n, fill = y)) +   
-  geom_bar(position = "dodge", stat="identity") +
-  facet_wrap(~Variable, scales="free") +
-  scale_fill_manual(values = palette2) +
-  labs(x="Take Credit", y="Count",
-       title = "Education group association with the likelihood of taking credit")
 
 ### Seasons
 house_subsidy <-
@@ -274,6 +260,48 @@ house_subsidy <-
     month == "jun" |month == "jul" | month == "aug" ~ "Summer",
     month == "sep" |month == "oct" | month == "nov" ~ "Fall"))
 
+### Day
+house_subsidy <-
+  house_subsidy %>%
+  mutate(Day = case_when(
+    day_of_week == "mon" |day_of_week == "fri" ~ "Busy",
+    day_of_week == "tue" |day_of_week == "wed" | day_of_week == "thu" ~ "Non-busy"))
+
+
+grid.arrange (ncol=3,
+house_subsidy %>%
+  dplyr::select(y, Employment) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Employment status association with the likelihood of taking credit"),
+
+house_subsidy %>%
+  dplyr::select(y, Age_group) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Age group association with the likelihood of taking credit"),
+
+house_subsidy %>%
+  dplyr::select(y, Education_group) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Education group association with the likelihood of taking credit"),
+
 house_subsidy %>%
   dplyr::select(y, Season) %>%
   gather(Variable, value, -y) %>%
@@ -283,14 +311,7 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Season contacted association with the likelihood of taking credit")
-
-### Day
-house_subsidy <-
-  house_subsidy %>%
-  mutate(Day = case_when(
-    day_of_week == "mon" |day_of_week == "fri" ~ "Busy",
-    day_of_week == "tue" |day_of_week == "wed" | day_of_week == "thu" ~ "Non-busy"))
+       title = "Season contacted association with the likelihood of taking credit"),
 
 house_subsidy %>%
   dplyr::select(y, Day) %>%
@@ -301,8 +322,18 @@ house_subsidy %>%
   facet_wrap(~Variable, scales="free") +
   scale_fill_manual(values = palette2) +
   labs(x="Take Credit", y="Count",
-       title = "Day contacted association with the likelihood of taking credit")
-)
+       title = "Day contacted association with the likelihood of taking credit"),
+
+house_subsidy %>%
+  dplyr::select(y, Pdays_group) %>%
+  gather(Variable, value, -y) %>%
+  count(Variable, value, y) %>%
+  ggplot(aes(value, n, fill = y)) +   
+  geom_bar(position = "dodge", stat="identity") +
+  facet_wrap(~Variable, scales="free") +
+  scale_fill_manual(values = palette2) +
+  labs(x="Take Credit", y="Count",
+       title = "Time associated with contacted association with the likelihood of taking credit"))
 
 ```
 ## Correlation
@@ -352,7 +383,7 @@ housingTest  <- house_subsidy[-trainIndex,]
 
 kitchensink <- glm(y_numeric ~ .,
                     data=housingTrain %>% 
-                      dplyr::select(-X, -Season, -Education_group,-Age_group,-Employment, -Day, -y),
+                      dplyr::select(-X, -Season, -Education_group,-Age_group,-Employment, -Day, -y, -Pdays_group),
                     family="binomial" (link="logit"))
 
 summary(kitchensink)
@@ -422,7 +453,7 @@ caret::confusionMatrix(testProbs$predOutcome, testProbs$Outcome,
 ## Cross Validation
 Compare and interpret two facetted plots of ROC, sensitivity, and specificity
 Ours is (sometimes) worse :(
-```{r cv, message=FALSE, warning=FALSE}
+```{r cv, message=FALSE, warning=FALSE, fig.width= 8, fig.height=4}
 
 
 ## Cross validation
@@ -430,7 +461,7 @@ ctrl <- trainControl(method = "cv", number = 100, classProbs=TRUE, summaryFuncti
 
 cvFitkitchensink <-train(y ~ .,
                data=house_subsidy %>% 
-                 dplyr::select(-X, -y_numeric, -Season, -Education_group,-Age_group,-Employment, -Day) %>%
+                 dplyr::select(-X, -y_numeric, -Season, -Education_group,-Age_group,-Employment, -Day, -Pdays_group) %>%
                  dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")),
                method="glm", family="binomial",
                metric="ROC", trControl = ctrl)
@@ -440,7 +471,7 @@ cvFitkitchensink
 cvFit <- train(y ~ .,
                 data=house_subsidy %>% 
                   dplyr::select(-y_numeric,-X, -contact,-month,-day_of_week,-poutcome,-Age_group, 
-                                 -education, -job) %>%
+                                 -education, -job, -Pdays_group) %>%
                   dplyr::mutate(y = ifelse(y=="yes","c1.yes","c2.no")), 
                 method="glm", family="binomial",
                 metric="ROC", trControl = ctrl)
@@ -449,7 +480,9 @@ cvFit <- train(y ~ .,
 cvFit
 
 ## Goodness metrics
-dplyr::select(cvFitkitchensink$resample, -Resample) %>%
+grid.arrange(ncol = 2,
+
+  dplyr::select(cvFitkitchensink$resample, -Resample) %>%
   gather(metric, value) %>%
   left_join(gather(cvFitkitchensink$results[2:4], metric, mean)) %>%
   ggplot(aes(value)) + 
@@ -458,10 +491,10 @@ dplyr::select(cvFitkitchensink$resample, -Resample) %>%
   geom_vline(aes(xintercept = mean), colour = "#981FAC", linetype = 3, size = 1.5) +
   scale_x_continuous(limits = c(0, 1)) +
   labs(x="Goodness of Fit", y="Count", title="CV Goodness of Fit Metrics Kitchen Sink Model",
-       subtitle = "Across-fold mean reprented as dotted lines")
+       subtitle = "Across-fold mean reprented as dotted lines"),
 
 
-dplyr::select(cvFit$resample, -Resample) %>%
+  dplyr::select(cvFit$resample, -Resample) %>%
   gather(metric, value) %>%
   left_join(gather(cvFit$results[2:4], metric, mean)) %>%
   ggplot(aes(value)) + 
@@ -469,8 +502,8 @@ dplyr::select(cvFit$resample, -Resample) %>%
   facet_wrap(~metric) +
   geom_vline(aes(xintercept = mean), colour = "#981FAC", linetype = 3, size = 1.5) +
   scale_x_continuous(limits = c(0, 1)) +
-  labs(x="Goodness of Fit", y="Count", title="CV Goodness of Fit Metrics",
-       subtitle = "Across-fold mean reprented as dotted lines")
+  labs(x="Goodness of Fit", y="Count", title="CV Goodness of Fit Metrics \n Feature Engineered Model",
+       subtitle = "Across-fold mean reprented as dotted lines"))
 ```
 
 
@@ -562,9 +595,9 @@ iterateThresholds <- function(data) {
       gather(Variable, Count) %>%
       mutate(ValueAdded_Minus_Expen =
                if_else(Variable == "True_Negative", Count * 0,
-                      if_else(Variable == "True_Positive", (Count*1000)+(Count*56000)-(Count*2850)-(Count*5000),
-                             if_else(Variable == "False_Negative", Count*0,
-                            if_else(Variable == "False_Positive", Count*2850,0)))), Threshold = x) %>%
+               if_else(Variable == "True_Positive", (Count*1000)+(Count*56000)-(Count*2850)-(Count*5000),
+               if_else(Variable == "False_Negative", Count*0,
+               if_else(Variable == "False_Positive", Count*2850,0)))), Threshold = x) %>%
       mutate(Number_Credits=
                case_when(Variable == "True_Negative" ~ Count*0,
                          Variable == "True_Positive" ~ Count*.25,
@@ -581,7 +614,7 @@ whichThreshold <- iterateThresholds(testProbs)
 
 whichThreshold_revenue <- 
   whichThreshold %>% 
-  group_by(Threshold) %>% 
+  group_by(Threshold) %>% na.omit() %>%
   summarize(ValueAdded_Minus_Expen = sum(ValueAdded_Minus_Expen))
 
 ggplot(whichThreshold_revenue)+
@@ -592,12 +625,11 @@ ggplot(whichThreshold_revenue)+
 
 whichThreshold_credits <- 
   whichThreshold %>% 
-  group_by(Threshold) %>% 
+  group_by(Threshold) %>% na.omit() %>%
   summarize(Number_Credits= sum(Number_Credits))
 
 ggplot(whichThreshold_credits)+
   geom_line(aes(x = Threshold, y = Number_Credits))+
-  geom_vline(xintercept =  pull(arrange(whichThreshold_credits, -Number_Credits)[1,1]))+
   labs(title = "Model Number of Credits By Threshold For Test Sample",
        subtitle = "Vertical Line Denotes Optimal Threshold")
 
