@@ -409,6 +409,8 @@ pR2(housingModel)
 testProbs <- data.frame(Outcome = as.factor(housingTest$y_numeric),
                         Probs = predict(housingModel, housingTest, type= "response"))
 
+testProbs$Probs <- ifelse(is.na(testProbs$Probs), 0.1043699, testProbs$Probs) 
+
 testProbskitchensink <- data.frame(Outcome = as.factor(housingTest$y_numeric),
                         Probs = predict(kitchensink, housingTest, type= "response"))
 
@@ -444,7 +446,7 @@ caret::confusionMatrix(testProbskitchensink$predOutcome, testProbskitchensink$Ou
 
 testProbs <- 
   testProbs %>%
-  mutate(predOutcome  = as.factor(ifelse(testProbs$Probs > 0.5 , 1, 0)))
+  mutate(predOutcome  = as.factor(ifelse(testProbs$Probs >= 0.5 , 1, 0)))
 
 caret::confusionMatrix(testProbs$predOutcome, testProbs$Outcome, 
                        positive = "1")
@@ -539,9 +541,9 @@ cost_benefit_table <-
   testProbs %>%
   count(predOutcome, Outcome) %>%
   summarize(True_Negative = sum(n[predOutcome==0 & Outcome==0]),
-            True_Positive = sum(n[predOutcome==1 & Outcome==1]),
-            False_Negative = sum(n[predOutcome==0 & Outcome==1]),
-            False_Positive = sum(n[predOutcome==1 & Outcome==0])) %>%
+                True_Positive = sum(n[predOutcome==1 & Outcome==1]),
+                False_Negative = sum(n[predOutcome==0 & Outcome==1]),
+                False_Positive = sum(n[predOutcome==1 & Outcome==0])) %>%
   gather(Variable, Count) %>%
   mutate(HCD_Expenditure =
            case_when(Variable == "True_Negative" ~ Count*0,
@@ -593,17 +595,27 @@ iterateThresholds <- function(data) {
                 False_Negative = sum(n[predOutcome==0 & Outcome==1]),
                 False_Positive = sum(n[predOutcome==1 & Outcome==0])) %>%
       gather(Variable, Count) %>%
-      mutate(ValueAdded_Minus_Expen =
-               ifelse(Variable == "True_Negative", Count * 0,
-               ifelse(Variable == "True_Positive", Count*(66000-7850),
-               ifelse(Variable == "False_Negative", Count*0,
-               ifelse(Variable == "False_Positive", Count * (2850),0)))), 
+      mutate(HCD_Expenditure =
+             case_when(Variable == "True_Negative" ~ Count*0,
+                Variable == "True_Positive" ~ (Count*2850)+(Count*5000),
+                Variable == "False_Negative" ~ Count*0,
+                Variable == "False_Positive" ~ (Count*2850)), 
             Threshold = x,
             Number_Credits =
                ifelse(Variable == "True_Negative", Count * 0,
                ifelse(Variable == "True_Positive", (Count*1),
                ifelse(Variable == "False_Negative", Count*0,
-               ifelse(Variable == "False_Positive", Count*0,0)))))
+               ifelse(Variable == "False_Positive", Count*0,0)))),
+            Home_Value_Added =
+           case_when(Variable == "True_Negative" ~ Count*0,
+                Variable == "True_Positive" ~ (Count*10000)+(Count*56000),
+                Variable == "False_Negative" ~ Count*0,
+                Variable == "False_Positive" ~ -(Count*0)),
+           Revenue =
+           case_when(Variable == "True_Negative" ~ Count*0,
+                Variable == "True_Positive" ~ ((Count*.25*10000) + (Count*.25*56000)-(Count*2850)-(Count*.25*5000)),
+                Variable == "False_Negative" ~ Count*0,
+                Variable == "False_Positive" ~ -(Count*2850)))
     
     all_prediction <- rbind(all_prediction, this_prediction)
     x <- x + .01
@@ -616,11 +628,11 @@ whichThreshold <- iterateThresholds(testProbs)
 whichThreshold_revenue <- 
   whichThreshold %>% 
   group_by(Threshold) %>% na.omit() %>%
-  summarize(ValueAdded_Minus_Expen = sum(ValueAdded_Minus_Expen))
+  summarize(Revenue = sum(Revenue))
 
 ggplot(whichThreshold_revenue)+
-  geom_line(aes(x = Threshold, y = ValueAdded_Minus_Expen))+
-  geom_vline(xintercept =  pull(arrange(whichThreshold_revenue, -ValueAdded_Minus_Expen)[1,1]))+
+  geom_line(aes(x = Threshold, y = Revenue))+
+  geom_vline(xintercept =  pull(arrange(whichThreshold_revenue, -Revenue)[1,1]))+
   labs(title = "Model Revenues By Threshold For Test Sample",
        subtitle = "Vertical Line Denotes Optimal Threshold")
 
@@ -637,7 +649,7 @@ ggplot(whichThreshold_credits)+
 ## Plot confusion metrics for each threshold
 
 whichThreshold %>%
-  ggplot(.,aes(Threshold, ValueAdded_Minus_Expen, colour = Variable)) +
+  ggplot(.,aes(Threshold, HCD_Expenditure, colour = Variable)) +
   geom_point() +
   scale_colour_manual(values = palette5[c(5, 1:3)]) +    
   labs(title = "Revenue by confusion metric type and threshold",
@@ -646,19 +658,21 @@ whichThreshold %>%
   guides(colour=guide_legend(title = "Confusion Metrics")) 
 
 # Optimal Threshold
-optimum_threshold <- pull(arrange(whichThreshold_revenue, -ValueAdded_Minus_Expen)[1,1])
+optimum_threshold <- pull(arrange(whichThreshold_revenue, -Revenue)[1,1])
 
 opt <- 
   whichThreshold %>% 
   group_by(Threshold) %>% 
-  summarize(ValueAdded_Minus_Expen = sum(ValueAdded_Minus_Expen),
+  summarize(HCD_Expenditure = sum(HCD_Expenditure),
+            Home_Value_Added = sum(Home_Value_Added),
             Number_Credits= sum(Number_Credits)) %>%
   filter(Threshold == optimum_threshold)
 
 fifty_thresh <-
   whichThreshold %>% 
   group_by(Threshold) %>% 
-  summarize(ValueAdded_Minus_Expen = sum(ValueAdded_Minus_Expen),
+  summarize(HCD_Expenditure = sum(HCD_Expenditure),
+            Home_Value_Added = sum(Home_Value_Added),
             Number_Credits= sum(Number_Credits)) %>%
   filter(Threshold > .499 & Threshold < .51)
 
