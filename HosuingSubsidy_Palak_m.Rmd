@@ -1,7 +1,7 @@
 ---
-title: "MUSA 508 Assignment 4"
+title: "Improving efficiency of HCD tax credit program"
 author: "Palak Agarwal"
-date: "10/28/2020"
+date: "10-30-2020"
 output: 
   html_document:
     toc: true
@@ -12,6 +12,14 @@ output:
 # Introduction
 The Department of Housing and Community Development (HCD) in Emil City seeks to launch a targeted campaign to encourage homeowners to take advantage of a $5,000 tax credit for home repairs. Typically, only 11% of the eligible homeowners they reach out to take the credit. This analysis attempts to improve the efficiency of HCD's outreach efforts, minimizing outreach to homeowners who are unlikely to take the credit while maximizing outreach to homeowners who are likely to take the credit.    
 The method used to maximize this efficiency is by generating a matrix that tells us how likely is the user to accept the credit or not. To make these prediction many variables are used which are related to the likely of taking the credit or not.      
+
+Our analysis uses a binary logistic regression to estimate whether eligible homeowners are likely to take the home repair tax credit based on a number of features. our goal is to create a model that can accurately predict instances of when a homeowner will and will not take the credit. After engineering features to make our predictive model as accurate as possible, we then use a cost-benefit analysis to search for an optimal threshold to limit ‘costly’ errors, or those create the greatest cost to HCD while producing the least benefit to homeowners. Based on our understanding of the credit program, we constructed some stylized facts to inform the cost-benefit analysis:
+
+- For each homeowner predicted to take the credit, HCD will allocate $2,850 for outreach (this figure includes staff and resources to facilitate mailers, phone calls, and information/counseling sessions at the HCD offices).
+- Given our new targeting algorithm, we assume 25% of contacted homeowners take the credit.
+- The credit costs $5,000 per homeowner which can be used toward home improvement.
+- Houses that transacted after taking the credit sold with a $10,000 premium, on average.
+- An additional benefit of the credit is that homes surrounding the repaired home see an aggregate premium of $56,000 on average, which HCD would like to consider as a benefit in the cost-benefit analysis.
 
 Initially the file is set up by loading the necessary libraries and the base file.
 
@@ -45,12 +53,12 @@ house_subsidy <- read.csv("DATA/housingSubsidy.csv")
 Below are some data visualizations - both of numeric and categorical variables. 
 
 From the below plots the following interpretations can be made :     
--The mean number of contacts prior to this campaign is higher for those who take the credit than those who do not.
--The mean amount of money spent annually on repairs is about the same.
--The mean age of those who take the credit is slightly higher than the mean age of eligible homeowners that do not take the credit.         
--The mean number of times homeowners were contacted within one campaign is higher for those who do not take the credit.
--The mean consumer confidence index and mean consumer price index at the time of the campaign is about the same for those who take the credit and those who do not.
--The mean unemployment rate is higher during more successful campaigns. 
+- The mean number of contacts prior to this campaign is higher for those who take the credit than those who do not.
+- The mean amount of money spent annually on repairs is about the same.
+- The mean age of those who take the credit is slightly higher than the mean age of eligible homeowners that do not take the credit.         
+- The mean number of times homeowners were contacted within one campaign is higher for those who do not take the credit.
+- The mean consumer confidence index and mean consumer price index at the time of the campaign is about the same for those who take the credit and those who do not.
+- The mean unemployment rate is higher during more successful campaigns. 
 ```{r data_vis, warning=FALSE, message=FALSE}
 ##continuous variables
 house_subsidy %>%
@@ -210,11 +218,11 @@ house_subsidy %>%
 
 ### Feature Engineering
 For this part of the model, we used the above plots to identify a few variables that did not make sense to have as they were presented. Below are the modified  features:   
--Employment status - As the status of employment matters more than type of job, we reduced the job category to only 2 categories - employment and unemployed.     
--Seasons - Checking when the user was contacted and identifying the season during that call improved the model. Seasons may impact when people are thinking about house repairs and are more likely to accept the credit during certain seasons.       
--Days of week - Beginning and end of week calls to users might reduce their receptiveness to the marketing campaign when compared to calls during the mid week calls.       
--Education & Age - The specific values of these columns are not as important as the larger brackets they fall under hence we feature engineered them to create smaller categories.     
--Pday - When the consumer was contacted has been made categorical.      
+- Employment status - As the status of employment matters more than type of job, we reduced the job category to only 2 categories - employment and unemployed.     
+- Seasons - Checking when the user was contacted and identifying the season during that call improved the model. Seasons may impact when people are thinking about house repairs and are more likely to accept the credit during certain seasons.       
+- Days of week - Beginning and end of week calls to users might reduce their receptiveness to the marketing campaign when compared to calls during the mid week calls.       
+- Education & Age - The specific values of these columns are not as important as the larger brackets they fall under hence we feature engineered them to create smaller categories.     
+- Pday - When the consumer was contacted has been made categorical.      
        
 Then the new variables were plotted. again these plot aren't useful because data is not normalized.
 ```{r data, message=FALSE, warning=FALSE, fig.width= 12,fig.height=8}
@@ -462,7 +470,7 @@ caret::confusionMatrix(testProbs$predOutcome, testProbs$Outcome,
 
 ## Cross Validation
 We tested both models using cross-validation. again, shows low sensitivity (true positive) and high specificity (true negative) rates for both models. The same can be seen on the plots that show the area under the ROC curve, sensitivity, and specificity. If model were generalizable and had a good goodness of fit, would expect all of these plots to be clustered around mean. As its visible, the specificity and the ROC of the models are good and can be a measure of goodness of fit but the variables need to be feature engineered better to get better sensitivity values.
-```{r cv, message=FALSE, warning=FALSE, fig.width= 8, fig.height=4}
+```{r cv, message=FALSE, warning=FALSE, fig.width= 10, fig.height=4}
 
 
 ## Cross validation
@@ -499,7 +507,7 @@ grid.arrange(ncol = 2,
   facet_wrap(~metric) +
   geom_vline(aes(xintercept = mean), colour = "#981FAC", linetype = 3, size = 1.5) +
   scale_x_continuous(limits = c(0, 1)) +
-  labs(x="Goodness of Fit", y="Count", title="CV Goodness of Fit Metrics Kitchen Sink Model",
+  labs(x="Goodness of Fit", y="Count", title="CV Goodness of Fit Metrics \n Kitchen Sink Model",
        subtitle = "Across-fold mean reprented as dotted lines"),
 
 
@@ -533,15 +541,15 @@ ggplot(testProbs, aes(d = as.numeric(testProbs$Outcome), m = Probs)) +
 ```
 
 # Cost/Benefit Analysis
-Split this into HCD expenditures and increases to house values:       
-           
--True negative: no HCD expenditure, no housing increases, Count*0
+For the cost and benefit table was split into HCD expenditures and increases to house values. As the HCD is a non profit and has no direct relation to the increase in the costing of the house, we felt is was apt to split the two costing. Below is the explanation of how we split the costing among the possible outcomes.        
+                    
+- True negative: no HCD expenditure, no housing increases, **Count*0**
 
-- True positive: HCD spends $2850 on marketing for all true positives and $5000 on tax credit for the 25% that actually take it, equation is (Count*2850)+(Count*.25*5000); benefit is $10000 increase in home value plus $56000 increase in value of surrounding homes, equation is (.25*Count*10000)+(.25*Count*56000)
+- True positive: HCD spends $2850 on marketing for all true positives and $5000 on tax credit for the 25% that actually take it, equation is **(Count*2850)+(Count*.25*5000)**; benefit is $10000 increase in home value plus $56000 increase in value of surrounding homes, equation is **(.25*Count*10000)+(.25*Count*56000)**
 
-- false negative: HCD did not spend money on marketing, but homeowner still took credit. Since we are analyzing impact of marketing campaign, we zero this out. Equation for both is Count*0
+- False negative: HCD did not spend money on marketing, but homeowner still took credit. Since we are analyzing impact of marketing campaign, we zero this out. Equation for both is **Count*0**
 
-- false positive: HCD spends money on marketing, equation is count*2850. No increase in values to homes. Equation is Count*0
+- False positive: HCD spends money on marketing, equation is **count*2850**. No increase in values to homes. Equation is **Count*0**
 
 ```{r cb_analysis, message=FALSE, warning=FALSE}
 ## Cost benefit
@@ -580,9 +588,9 @@ kable(cost_benefit_table,
 
 ## Comparing Thresholds
 ### Confusion Metric Plots
-- for HCD expenditure by confusion metric, explain that can't see true negative because it is also 0
--this plot shows that the HCD expenditure on false positives decreases steeply as threshold increases until a threshold of about 12.5
-- for added value to homes by confusion metric plot, value added would be highest at a threshold of 0. However, a lot of money would be wasted on marketing, as seen in the previous plot
+Next we move on to plotting the confusion metrics for all thresholds from 1% to a 100%. To do this we use a function called **iteratethreshold** which saves the value of HCD expenditure, value added to the homes and the number of credits for each threshold.    
+In the below plots you can see that for HCD expenditure by confusion metric, the true negative is not visible asits below the false negative because it is also 0 and are overlaid one top of other. The plot also shows that the HCD expenditure on false positives decreases steeply as threshold increases until a threshold of about 12.5%.     
+For added value to homes by confusion metric plot, value added would be highest at a threshold of 0. However, a lot of money would be wasted on marketing, as seen in the previous plot. No other confusion metric is shown as no other metric sees a change in home values.
 
 ```{r confmetrics, message=FALSE, warning=FALSE}
 
@@ -654,10 +662,10 @@ whichThreshold %>% filter(Variable == "True_Positive") %>%
 
 
 ### Threshold Plots
-- First plot shows both HCD expenditures and value added to homes for each threshold. The goal is to minimize HCD expenditures while maximizing value added to homes
--The second plot combines these terms, taking the value added to homes and subtracting HCD expenditures for each threshold. This shows that the optimal threshold is about .2, meaning any homeowner with a 20% probability of taking the credit is considered a "positive" case. This plot also shows that at thresholds below about 10%, HCD spends more money than is gained by adding value to houses
-- the third plot shows the number of tax credits claimed at each threshold.This shows that the highest number of tax credits would be claimed with a very low threshold, meaning almost every eligible homeowner would receive marketing materials. However, the previous plots show that this would cost too much money compared to the financial benefits to the homeowners
-- the final table shows the HCD expenditures and value added to homes for our optimal threshold of 20% and a default threshold of 50%. The 50% threshold saves HCD money in marketing, but the value added to homes is also quite low. At a 20% threshold, HCD spends $527,800 in marketing and tax credits, which lead to a $1,023,000 increase in the value of the homes
+- First plot shows both HCD expenditures and value added to homes for each threshold. The goal is to minimize HCD expenditures while maximizing value added to homes. HCD being a government agency it has no profit gain calculation of its own and works for the betterment of the public. 
+- The second plot combines these terms, taking the value added to homes and subtracting HCD expenditures for each threshold. This shows that the optimal threshold is about .2, meaning any homeowner with a 20% probability of taking the credit is considered a "positive" case. This plot also shows that at thresholds below about 10%, HCD spends more money than is gained by adding value to houses
+- The third plot shows the number of tax credits claimed at each threshold.This shows that the highest number of tax credits would be claimed with a very low threshold, meaning almost every eligible homeowner would receive marketing materials. However, the previous plots show that this would cost too much money compared to the financial benefits to the homeowners
+- The final table shows the HCD expenditures and value added to homes for our optimal threshold of 20% and a default threshold of 50%. The 50% threshold saves HCD money in marketing, but the value added to homes is also quite low. At a 20% threshold, HCD spends $527,800 in marketing and tax credits, which lead to a $1,023,000 increase in the value of the homes
 ```{r thresholds, message=FALSE, warning=FALSE}
 
 whichThreshold_hcd <- 
@@ -719,7 +727,7 @@ kable(final,
 
 ```
 
-# Conclusion
-Should this model be put into production? What could make the model better? What would you do to ensure that the marketing materials result in a better response rate?
-- model has low sensitivty. HCD could save money on marketing with increased sensitivity.
-- maybe add more demographic information to the model?
+# Conclusion    
+
+In general, I would recommend putting this model into production as it will benefit the highest number of households and generate the highest amount of direct and indirect benefits to the Emil City community but it would need smarter features and more demographic data. The main issue is that the sensitivity is very low, meaning that the model does not do a good job of predicting actual positive credit acceptances. This is likely because there are so few “yes” outcomes in the underlying data.    
+In order to improve the model, I would recommend working with more data to improve the model, or engineer better features for predicting. To ensure that the marketing materials resulted in a better response rate, I would first test my improved method as a pilot program. This could serve as a test case to get a sense of whether the new method is working, or if it needs to be further improved before being implemented at a larger scale. In cases where there are limited resources available, it may be better to be cautious (thus using a pilot approach) before implementing an entirely new and untested method.
