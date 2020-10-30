@@ -631,3 +631,14 @@ cvk <- cvFitkitchensink$resample %>%
   mutate(CrossV = 'Kitchen')
 
 cross_v <- rbind(cv, cvk)
+
+dplyr::select(cross_v, -Resample, -CrossV) %>%
+  gather(metric, value) %>%
+  left_join(gather(cvFit$results[2:4], metric, mean)) %>%
+  ggplot(aes(value)) + 
+  geom_histogram(bins=35, fill = "#FF006A") +
+  facet_wrap(~metric) +
+  geom_vline(aes(xintercept = mean), colour = "#981FAC", linetype = 3, size = 1.5) +
+  scale_x_continuous(limits = c(0, 1)) +
+  labs(x="Goodness of Fit", y="Count", title="CV Goodness of Fit Metrics",
+       subtitle = "Across-fold mean reprented as dotted lines")
